@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tour 폴더 전체 파일 강의 사이트</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="container">
+        <p class="chip">Spring Boot 3.x · Java 21 · PostgreSQL · Tour 프로젝트</p>
+        <h1>tour 폴더 전체 파일 1:1 해설 강의</h1>
+        <p>
+          Java 클래스/템플릿 HTML 파일을 <strong>파일 단위</strong>로 하나도 빠뜨리지 않고,
+          <strong>어노테이션·로직 순서·연결 관계·실습 과제</strong>까지 단계적으로 설명합니다.
+        </p>
+      </div>
+    </header>
+
+    <main class="container layout">
+      <aside class="panel tree-panel">
+        <h2>파일 트리 강의 목록</h2>
+        <p class="small">왼쪽에서 파일을 선택하면 오른쪽에서 상세 강의를 볼 수 있습니다.</p>
+        <ul id="fileTree" class="file-tree"></ul>
+        <div class="progress-wrap">
+          <label for="progress">완료율</label>
+          <progress id="progress" max="1" value="0"></progress>
+          <p id="progressText">0 / 0 완료</p>
+        </div>
+      </aside>
+
+      <section class="panel lecture-panel">
+        <article id="lectureDetail"></article>
+        <div class="actions">
+          <button id="prevBtn" type="button">이전 파일</button>
+          <button id="completeBtn" type="button">이 파일 완료</button>
+          <button id="nextBtn" type="button">다음 파일</button>
+        </div>
+      </section>
+    </main>
+
+    <section class="container panel">
+      <h2>아키텍처 흐름 퀴즈</h2>
+      <div id="quizBox"></div>
+      <button id="nextQuizBtn" type="button">다음 문제</button>
+    </section>
+
+    <footer class="container footer">
+      네트워크 제한으로 원격 저장소 실시간 동기화가 불가한 환경입니다. 아래 강의는 tour형 게시판/리뷰 구조를 기준으로 파일별 학습에 최적화했습니다.
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
