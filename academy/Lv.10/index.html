@@ -1,0 +1,301 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spring Boot 3 Master Class - Lv.10</title>
+  <style>
+    :root { --bg:#f5f7fb; --paper:#fff; --text:#1f2937; --sub:#4b5563; --line:#d8e1ee; --primary:#0f766e; --primary-soft:#e6fffa; --code-bg:#0f172a; --code-text:#e2e8f0; --warn:#b45309; --warn-soft:#fff7ed; --shadow:0 10px 24px rgba(2,6,23,.08); }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Pretendard","Noto Sans KR",sans-serif; color:var(--text); background:radial-gradient(circle at 0% 0%,#dbeafe 0,transparent 32%),radial-gradient(circle at 100% 0%,#ffedd5 0,transparent 26%),var(--bg); line-height:1.74; }
+    .wrap { max-width:1160px; margin:0 auto; padding:24px 18px 60px; }
+    .hero { border-radius:22px; padding:26px; background:linear-gradient(120deg,#0f766e,#155e75); color:#f8fafc; box-shadow:var(--shadow); }
+    .chip { display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.14); margin:0 6px 6px 0; font-size:.82rem; }
+    .hero h1 { margin:4px 0 6px; font-size:1.85rem; }
+    .hero p { margin:6px 0; opacity:.95; }
+    section { margin-top:16px; border:1px solid var(--line); background:var(--paper); border-radius:16px; box-shadow:var(--shadow); padding:20px; }
+    h2 { margin:0 0 10px; font-size:1.26rem; border-left:5px solid var(--primary); padding-left:10px; }
+    h3 { margin:16px 0 8px; font-size:1.04rem; }
+    .step { margin-top:10px; border:1px solid var(--line); border-radius:12px; padding:12px; background:#fcfdff; }
+    .pill { display:inline-block; border-radius:8px; padding:2px 8px; font-size:.8rem; font-weight:700; margin-bottom:6px; }
+    .theory { background:var(--primary-soft); color:#0f766e; } .code { background:#e0e7ff; color:#3730a3; } .grammar { background:#eef2ff; color:#312e81; } .check { background:var(--warn-soft); color:var(--warn); }
+    pre { margin:8px 0 0; background:var(--code-bg); color:var(--code-text); border-radius:10px; padding:12px; overflow-x:auto; font-size:.84rem; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Courier New",monospace; font-size:.9em; }
+    ul,ol { padding-left:20px; }
+    table { width:100%; border-collapse:collapse; margin-top:8px; font-size:.92rem; }
+    th,td { border:1px solid var(--line); padding:8px; text-align:left; vertical-align:top; }
+    th { background:#f0f9ff; }
+    .note { margin-top:8px; border-left:4px solid #f97316; background:#fff7ed; border-radius:8px; padding:10px; color:#7c2d12; }
+    .svg-wrap { margin-top: 10px; border:1px solid var(--line); border-radius:12px; background:#fff; padding:10px; overflow-x:auto; }
+    .footer { margin-top:16px; text-align:center; color:var(--sub); font-size:.9rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <span class="chip">Lv.10</span>
+      <span class="chip">Part 1 종합 정리</span>
+      <span class="chip">운영원칙 적용</span>
+      <h1>Lv.1 ~ Lv.9 총정리: Entity ~ Controller 완전 연결</h1>
+      <p>이번 레벨은 종합편입니다. 지금까지의 모든 패키지와 문법을 한 장의 지도처럼 정리합니다.</p>
+      <p>핵심 목표: "코드 한 줄을 읽으면, 왜 여기 있는지 설명할 수 있는 상태" 만들기</p>
+    </header>
+
+    <section>
+      <h2>0) 이전 레벨 복습 (Lv.9)</h2>
+      <div class="step"><span class="pill theory">복습 핵심</span>
+        <ul>
+          <li>Lv.9에서 Controller가 입력/검증/흐름 제어를 담당한다는 점을 학습했습니다.</li>
+          <li>Service와 Controller 책임 분리가 유지보수 핵심이라는 점을 확인했습니다.</li>
+        </ul>
+      </div>
+      <div class="note">Lv.10은 "부분 학습"이 아니라 "전체 연결"입니다. 한 요청이 모든 패키지를 어떻게 지나가는지 완전히 이해하는 것이 목표입니다.</div>
+    </section>
+
+    <section>
+      <h2>1) 전체 아키텍처 흐름도 (그림)</h2>
+      <div class="step"><span class="pill theory">한 눈에 보는 요청 흐름</span>
+        <div class="svg-wrap">
+          <svg width="1080" height="330" viewBox="0 0 1080 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Spring layered flow">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L9,3 z" fill="#0f766e" />
+              </marker>
+            </defs>
+            <rect x="20" y="40" width="130" height="56" rx="10" fill="#ecfeff" stroke="#0f766e"/>
+            <text x="85" y="72" text-anchor="middle" font-size="14" fill="#134e4a">Browser</text>
+
+            <rect x="180" y="40" width="150" height="56" rx="10" fill="#f0f9ff" stroke="#0f766e"/>
+            <text x="255" y="72" text-anchor="middle" font-size="14" fill="#134e4a">Controller</text>
+
+            <rect x="360" y="40" width="140" height="56" rx="10" fill="#f0fdf4" stroke="#0f766e"/>
+            <text x="430" y="72" text-anchor="middle" font-size="14" fill="#134e4a">Service</text>
+
+            <rect x="530" y="40" width="170" height="56" rx="10" fill="#fffbeb" stroke="#0f766e"/>
+            <text x="615" y="72" text-anchor="middle" font-size="14" fill="#134e4a">Repository</text>
+
+            <rect x="730" y="40" width="130" height="56" rx="10" fill="#fdf4ff" stroke="#0f766e"/>
+            <text x="795" y="72" text-anchor="middle" font-size="14" fill="#134e4a">Entity</text>
+
+            <rect x="890" y="40" width="170" height="56" rx="10" fill="#fff7ed" stroke="#0f766e"/>
+            <text x="975" y="72" text-anchor="middle" font-size="14" fill="#134e4a">PostgreSQL</text>
+
+            <line x1="150" y1="68" x2="178" y2="68" stroke="#0f766e" stroke-width="2" marker-end="url(#arrow)"/>
+            <line x1="330" y1="68" x2="358" y2="68" stroke="#0f766e" stroke-width="2" marker-end="url(#arrow)"/>
+            <line x1="500" y1="68" x2="528" y2="68" stroke="#0f766e" stroke-width="2" marker-end="url(#arrow)"/>
+            <line x1="700" y1="68" x2="728" y2="68" stroke="#0f766e" stroke-width="2" marker-end="url(#arrow)"/>
+            <line x1="860" y1="68" x2="888" y2="68" stroke="#0f766e" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <rect x="240" y="130" width="170" height="52" rx="10" fill="#eef2ff" stroke="#3730a3"/>
+            <text x="325" y="161" text-anchor="middle" font-size="13" fill="#312e81">Request DTO</text>
+
+            <rect x="450" y="130" width="170" height="52" rx="10" fill="#eef2ff" stroke="#3730a3"/>
+            <text x="535" y="161" text-anchor="middle" font-size="13" fill="#312e81">Response DTO</text>
+
+            <rect x="660" y="130" width="150" height="52" rx="10" fill="#e6fffa" stroke="#0f766e"/>
+            <text x="735" y="161" text-anchor="middle" font-size="13" fill="#134e4a">Config Beans</text>
+
+            <text x="20" y="238" font-size="13" fill="#334155">요청: Browser -> Controller(입력 바인딩/검증) -> Service(규칙/변환) -> Repository(DB작업) -> Entity -> DB</text>
+            <text x="20" y="262" font-size="13" fill="#334155">응답: DB -> Entity -> Service(Entity->DTO) -> Controller(Model) -> Thymeleaf View</text>
+            <text x="20" y="286" font-size="13" fill="#334155">Config는 Service/Controller가 재사용하는 공통 도구(예: PasswordEncoder)를 제공</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>2) 패키지별 핵심 역할 + 문법 공식</h2>
+
+      <div class="step"><span class="pill grammar">Entity 패키지</span>
+<pre><code>// 문법 공식
+@Entity
+@Getter
+@NoArgsConstructor
+public class Xxx {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = ...)
+    private String field;
+
+    @Builder
+    public Xxx(...) { ... }
+}
+</code></pre>
+        <ul>
+          <li>역할: DB 테이블 구조를 코드로 표현.</li>
+          <li>핵심: 제약조건(<code>@Column</code>)을 엔티티에서 명확히 선언해 무결성 확보.</li>
+        </ul>
+      </div>
+
+      <div class="step"><span class="pill grammar">Repository 패키지</span>
+<pre><code>// 문법 공식
+public interface XxxRepository extends JpaRepository&lt;Xxx, Long&gt; {
+    Optional&lt;Xxx&gt; findByUniqueField(...);
+    List&lt;Xxx&gt; findBySearchFieldContaining(...);
+    boolean existsByUniqueField(...);
+}
+</code></pre>
+        <ul>
+          <li>역할: DB 접근 창구.</li>
+          <li>핵심: Optional/ List/ boolean 반환 타입을 의도에 맞게 선택.</li>
+        </ul>
+      </div>
+
+      <div class="step"><span class="pill grammar">DTO 패키지</span>
+<pre><code>// 문법 공식
+public class XxxRequestDto { ... } // 입력 모델
+public record XxxResponseDto(...) {
+    public static XxxResponseDto from(Entity e) { ... } // Entity -> DTO
+}
+
+public Entity toEntity(...) { ... } // DTO -> Entity
+</code></pre>
+        <ul>
+          <li>역할: 계층 간 데이터 전달 경계.</li>
+          <li>핵심: Entity를 외부에 직접 노출하지 않기.</li>
+        </ul>
+      </div>
+
+      <div class="step"><span class="pill grammar">Config 패키지</span>
+<pre><code>// 문법 공식
+@Configuration
+public class XxxConfig {
+    @Bean
+    public SomeType someBean() { ... }
+}
+</code></pre>
+        <ul>
+          <li>역할: 공통 도구/설정 중앙 관리.</li>
+          <li>핵심: Service/Controller에서 재사용할 Bean을 한 곳에 등록.</li>
+        </ul>
+      </div>
+
+      <div class="step"><span class="pill grammar">Service 패키지</span>
+<pre><code>// 문법 공식
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class XxxService {
+    private final XxxRepository repo;
+
+    public ReturnType useCase(RequestDto req) {
+        // 규칙검증 -> 변환 -> 저장/조회 -> 변환 -> 반환
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseDto query(...) { ... }
+}
+</code></pre>
+        <ul>
+          <li>역할: 비즈니스 규칙의 중심.</li>
+          <li>핵심: "Controller는 흐름, Service는 판단" 원칙 유지.</li>
+        </ul>
+      </div>
+
+      <div class="step"><span class="pill grammar">Controller 패키지</span>
+<pre><code>// 문법 공식 (MVC)
+@Controller
+@RequestMapping("/prefix")
+public class XxxController {
+    @GetMapping("/form")
+    public String form(Model model) { ... }
+
+    @PostMapping("/save")
+    public String save(@Valid @ModelAttribute("req") ReqDto req, BindingResult br) { ... }
+}
+</code></pre>
+        <ul>
+          <li>역할: HTTP 요청 수신 + 화면 라우팅.</li>
+          <li>핵심: 검증 실패 처리와 redirect 흐름(PRG 패턴).</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>3) 실제 요청 1개를 끝까지 추적 (회원가입 시나리오)</h2>
+      <div class="step"><span class="pill code">코드 흐름 요약</span>
+<pre><code>// Controller
+@PostMapping("/members/join")
+public String join(@Valid @ModelAttribute("req") MemberJoinRequest req, BindingResult br) {
+    if (br.hasErrors()) return "member/join"; // 입력 오류 처리
+    Long memberId = memberService.join(req); // Service 위임
+    return "redirect:/members/detail?memberId=" + memberId;
+}
+
+// Service
+@Transactional
+public Long join(MemberJoinRequest req) {
+    if (memberRepository.existsByEmail(req.getEmail())) throw new IllegalArgumentException("중복 이메일");
+    Member saved = memberRepository.save(req.toEntity(passwordEncoder));
+    return saved.getId();
+}
+
+// Repository
+boolean existsByEmail(String email);
+Member save(Member member);
+</code></pre>
+      </div>
+      <div class="step"><span class="pill grammar">왜 이 순서인가?</span>
+        <ol>
+          <li>Controller: 잘못된 입력을 먼저 걸러서 Service 부담 감소.</li>
+          <li>Service: 도메인 규칙(중복/암호화/변환) 수행.</li>
+          <li>Repository: 실제 DB 접근.</li>
+          <li>Controller: 성공 시 새 요청으로 이동해 중복 제출 방지.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section>
+      <h2>4) 어노테이션 총정리 (Lv.1~Lv.9)</h2>
+      <div class="step"><span class="pill grammar">사용된 주요 어노테이션 정리표</span>
+        <table>
+          <thead><tr><th>어노테이션</th><th>주 사용 패키지</th><th>역할</th><th>핵심 사용 시점</th></tr></thead>
+          <tbody>
+            <tr><td><code>@Entity</code></td><td>Entity</td><td>테이블 매핑</td><td>도메인 모델 설계 시</td></tr>
+            <tr><td><code>@Id</code>, <code>@GeneratedValue</code></td><td>Entity</td><td>기본키/생성전략</td><td>PK 필드 선언 시</td></tr>
+            <tr><td><code>@Column</code></td><td>Entity</td><td>컬럼 제약</td><td>null/길이/유니크 제어</td></tr>
+            <tr><td><code>@ManyToOne</code>, <code>@JoinColumn</code></td><td>Entity</td><td>연관관계/FK</td><td>Board->Member 연결 시</td></tr>
+            <tr><td><code>@Getter</code>, <code>@Setter</code></td><td>Entity/DTO</td><td>Lombok 메서드 생성</td><td>반복 코드 감소</td></tr>
+            <tr><td><code>@NoArgsConstructor</code>, <code>@Builder</code></td><td>Entity</td><td>기본생성자/빌더</td><td>JPA 호환 + 가독성 향상</td></tr>
+            <tr><td><code>@Configuration</code>, <code>@Bean</code></td><td>Config</td><td>공통 도구 등록</td><td>PasswordEncoder 등 등록</td></tr>
+            <tr><td><code>@Service</code></td><td>Service</td><td>비즈니스 로직 계층</td><td>규칙 구현 시</td></tr>
+            <tr><td><code>@Transactional</code></td><td>Service</td><td>트랜잭션 경계</td><td>쓰기/읽기 메서드 구분 시</td></tr>
+            <tr><td><code>@Controller</code></td><td>Controller</td><td>MVC 컨트롤러</td><td>화면 반환 시</td></tr>
+            <tr><td><code>@RequestMapping</code>, <code>@GetMapping</code>, <code>@PostMapping</code></td><td>Controller</td><td>URL 매핑</td><td>HTTP 진입점 설계 시</td></tr>
+            <tr><td><code>@ModelAttribute</code>, <code>@RequestParam</code></td><td>Controller</td><td>요청값 바인딩</td><td>폼/쿼리 파라미터 수신 시</td></tr>
+            <tr><td><code>@Valid</code></td><td>Controller/DTO</td><td>검증 실행</td><td>입력 검증 시</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>5) 자주 틀리는 포인트 총정리</h2>
+      <div class="step"><span class="pill grammar">실수 -> 해결</span>
+        <ul>
+          <li>실수: Controller에서 중복 검사까지 처리 -> 해결: Service로 이동.</li>
+          <li>실수: Entity를 그대로 응답 -> 해결: Response DTO 변환 고정.</li>
+          <li>실수: 검증 실패인데 Service 호출 -> 해결: <code>BindingResult</code> 즉시 체크.</li>
+          <li>실수: readOnly 없이 모든 메서드 @Transactional -> 해결: 조회/쓰기 분리.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>6) Lv.10 완료 체크리스트</h2>
+      <div class="step"><span class="pill check">최종 확인</span>
+        <ol>
+          <li>요청 1개가 Entity~Controller를 어떻게 통과하는지 흐름도를 보고 설명할 수 있다.</li>
+          <li>패키지별 역할(책임 경계)을 말로 설명할 수 있다.</li>
+          <li>Lv.1~Lv.9 어노테이션의 역할과 사용 시점을 설명할 수 있다.</li>
+          <li>문법 공식(각 패키지 템플릿)을 보고 새 기능을 스스로 확장할 수 있다.</li>
+        </ol>
+      </div>
+      <div class="note">다음 Part2(Lv.11~)에서는 이 구조를 유지한 채 REST, Security, 예외처리, 페이징, 파일 업로드, QueryDSL, 트랜잭션 최적화로 확장합니다.</div>
+    </section>
+
+    <p class="footer">Spring Boot 3 Master Class - Lv.10 (Part1 종합 정리)</p>
+  </div>
+</body>
+</html>

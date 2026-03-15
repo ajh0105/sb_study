@@ -1,0 +1,362 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spring Boot 3 Master Class - Lv.3</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --paper: #ffffff;
+      --text: #1f2937;
+      --sub: #4b5563;
+      --line: #d8e1ee;
+      --primary: #0f766e;
+      --primary-soft: #e6fffa;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+      --warn: #b45309;
+      --warn-soft: #fff7ed;
+      --shadow: 0 10px 24px rgba(2, 6, 23, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Noto Sans KR", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 0% 0%, #dbeafe 0, transparent 32%),
+        radial-gradient(circle at 100% 0%, #ffedd5 0, transparent 26%),
+        var(--bg);
+      line-height: 1.72;
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 24px 18px 60px; }
+    .hero {
+      border-radius: 22px;
+      padding: 26px;
+      background: linear-gradient(120deg, #0f766e, #155e75);
+      color: #f8fafc;
+      box-shadow: var(--shadow);
+    }
+    .chip {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.14);
+      margin: 0 6px 6px 0;
+      font-size: 0.82rem;
+    }
+    .hero h1 { margin: 4px 0 6px; font-size: 1.85rem; }
+    .hero p { margin: 6px 0; opacity: 0.95; }
+    section {
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+    h2 { margin: 0 0 10px; font-size: 1.26rem; border-left: 5px solid var(--primary); padding-left: 10px; }
+    h3 { margin: 16px 0 8px; font-size: 1.04rem; }
+    .step {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fcfdff;
+    }
+    .pill {
+      display: inline-block;
+      border-radius: 8px;
+      padding: 2px 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .theory { background: var(--primary-soft); color: #0f766e; }
+    .code { background: #e0e7ff; color: #3730a3; }
+    .grammar { background: #eef2ff; color: #312e81; }
+    .check { background: var(--warn-soft); color: var(--warn); }
+    pre {
+      margin: 8px 0 0;
+      background: var(--code-bg);
+      color: var(--code-text);
+      border-radius: 10px;
+      padding: 12px;
+      overflow-x: auto;
+      font-size: 0.84rem;
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 0.9em; }
+    ul, ol { padding-left: 20px; }
+    .flow {
+      background: #0b1325;
+      color: #d5f8f3;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 0.84rem;
+      overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--line); padding: 8px; text-align: left; vertical-align: top; }
+    th { background: #f0f9ff; }
+    .note {
+      margin-top: 8px;
+      border-left: 4px solid #f97316;
+      background: #fff7ed;
+      border-radius: 8px;
+      padding: 10px;
+      color: #7c2d12;
+    }
+    .footer { margin-top: 16px; text-align: center; color: var(--sub); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <span class="chip">Lv.3</span>
+      <span class="chip">Part 1 (Thymeleaf)</span>
+      <span class="chip">운영원칙 적용</span>
+      <h1>Entity 심화: Board 엔티티를 설계하는 사고방식</h1>
+      <p>이번 레벨은 <strong>한 주제만 깊게</strong> 다룹니다: Entity</p>
+      <p>기초 순서 고정: Entity -> Repository -> DTO -> Config -> Service -> Controller</p>
+    </header>
+
+    <section>
+      <h2>0) 이전 레벨 복습 (Lv.2)</h2>
+      <div class="step">
+        <span class="pill theory">복습 핵심</span>
+        <ul>
+          <li>Lv.2에서 Repository(JpaRepository 상속, Optional/List)를 배웠습니다.</li>
+          <li>핵심은 "조회 결과 타입을 설계 의도에 맞게 고르는 것"이었습니다.</li>
+        </ul>
+      </div>
+      <div class="step">
+        <span class="pill theory">이번 레벨 연결</span>
+        <div class="flow"><code>[Lv.2 Repository]
+  는
+[Lv.3 Entity 설계 품질]
+  에 100% 의존합니다.
+
+엔티티가 불안정하면
+레포지토리 메서드 이름도 흔들리고,
+서비스 규칙도 꼬입니다.
+</code></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>1) 환경 설정 복습 (Entity 학습 관점)</h2>
+      <div class="step">
+        <span class="pill code">application.yml (왜 필요한지 라인 해설)</span>
+        <pre><code>spring: # 스프링 설정 최상위
+  datasource: # DB 접속 정보
+    url: jdbc:postgresql://localhost:5432/spring_lv1 # 어느 DB에 엔티티 테이블을 만들지 주소 지정
+    username: postgres # DB 아이디
+    password: 1234 # DB 비밀번호(학습용)
+
+  jpa: # 엔티티 매핑 설정
+    hibernate:
+      ddl-auto: update # 엔티티 코드 변경을 테이블 구조에 반영
+    show-sql: true # 엔티티 설계 결과로 어떤 SQL이 나가는지 확인
+    properties:
+      hibernate:
+        format_sql: true # SQL 가독성 향상
+</code></pre>
+      </div>
+      <div class="step">
+        <span class="pill grammar">왜 Entity 챕터에서 yml을 다시 보나?</span>
+        <ul>
+          <li><code>ddl-auto</code>가 어떻게 설정되느냐에 따라 엔티티 변경이 DB에 반영되는 방식이 달라집니다.</li>
+          <li>Entity를 학습할 때는 SQL 출력(<code>show-sql</code>)을 보며 "내 설계가 실제 쿼리로 어떻게 번역되는지" 확인해야 합니다.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>2) 데이터 설계: Board 엔티티를 왜 이렇게 만들까?</h2>
+
+      <div class="step">
+        <span class="pill theory">필드 선정 사고방식</span>
+        <ul>
+          <li><code>id</code>: 게시글을 유일하게 식별하는 기본키.</li>
+          <li><code>title</code>: 목록에서 바로 보여줄 핵심 정보.</li>
+          <li><code>content</code>: 본문은 길 수 있으므로 TEXT 전략 고려.</li>
+          <li><code>writer</code>: 게시글은 작성자(Member)와 반드시 연결되어야 함.</li>
+        </ul>
+      </div>
+
+      <div class="step">
+        <span class="pill code">Board Entity (모든 라인 주석)</span>
+        <pre><code>package com.example.lv3.entity; // 엔티티 패키지 선언
+
+import jakarta.persistence.Column; // 컬럼 옵션 지정
+import jakarta.persistence.Entity; // 엔티티 선언
+import jakarta.persistence.FetchType; // 연관관계 조회 전략 지정
+import jakarta.persistence.GeneratedValue; // PK 생성 전략
+import jakarta.persistence.GenerationType; // PK 전략 타입
+import jakarta.persistence.Id; // 기본키 지정
+import jakarta.persistence.JoinColumn; // FK 컬럼명 지정
+import jakarta.persistence.ManyToOne; // 다대일 연관관계
+import lombok.Builder; // 빌더 패턴
+import lombok.Getter; // getter 자동 생성
+import lombok.NoArgsConstructor; // 기본 생성자 자동 생성
+
+@Entity // JPA가 Board를 테이블로 인식
+@Getter // 필드 조회 메서드 생성
+@NoArgsConstructor // JPA 프록시 생성 시 기본 생성자 필요
+public class Board { // 게시글 엔티티
+
+    @Id // 기본키
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // DB auto increment 사용
+    private Long id; // 게시글 번호
+
+    @Column(nullable = false, length = 100) // null 금지, 최대 100자
+    private String title; // 제목
+
+    @Column(nullable = false, columnDefinition = "TEXT") // null 금지, 긴 본문 저장용
+    private String content; // 본문
+
+    @ManyToOne(fetch = FetchType.LAZY) // 게시글 여러 개가 회원 한 명을 참조
+    @JoinColumn(name = "member_id", nullable = false) // FK 컬럼명 member_id, null 금지
+    private Member writer; // 작성자
+
+    @Builder // Board.builder() 문법 지원
+    public Board(String title, String content, Member writer) { // 생성자
+        this.title = title; // 제목 대입
+        this.content = content; // 내용 대입
+        this.writer = writer; // 작성자 대입
+    }
+
+    public void update(String title, String content) { // 엔티티 상태 변경 메서드
+        this.title = title; // 수정된 제목 반영
+        this.content = content; // 수정된 내용 반영
+    }
+}
+</code></pre>
+      </div>
+
+      <div class="step">
+        <span class="pill grammar">Java 기초 연결: private / Long / String / 참조타입</span>
+        <table>
+          <thead>
+            <tr>
+              <th>요소</th>
+              <th>뜻</th>
+              <th>왜 이렇게 선택?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>private</code></td>
+              <td>외부 직접 접근 금지</td>
+              <td>Service를 거치지 않은 무분별한 변경 방지</td>
+            </tr>
+            <tr>
+              <td><code>Long</code></td>
+              <td>객체형 정수</td>
+              <td>PK 용도로 넉넉한 범위 + null 상태 표현 가능</td>
+            </tr>
+            <tr>
+              <td><code>String</code></td>
+              <td>문자열 타입</td>
+              <td>title/content는 텍스트 데이터</td>
+            </tr>
+            <tr>
+              <td><code>Member writer</code></td>
+              <td>객체 참조</td>
+              <td>단순 숫자 FK가 아니라 도메인 관계를 코드로 표현</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>3) 어노테이션 사전 (Lv.3 Entity 편)</h2>
+      <div class="step">
+        <span class="pill grammar">동작 원리 + 사용 시점</span>
+        <ul>
+          <li><code>@Entity</code>: 클래스가 JPA 관리 대상임을 선언.</li>
+          <li><code>@Id</code>, <code>@GeneratedValue</code>: PK 선언과 생성 전략 지정.</li>
+          <li><code>@Column</code>: null/길이/타입 옵션으로 DB 제약을 코드에 반영.</li>
+          <li><code>@ManyToOne</code>: Board -> Member 관계를 객체 지향적으로 표현.</li>
+          <li><code>@JoinColumn</code>: FK 컬럼명을 명시해 DB 스키마 의도를 분명히 함.</li>
+          <li><code>@Getter</code>, <code>@NoArgsConstructor</code>, <code>@Builder</code>: 반복 코드 감소 + 안정적 생성.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>4) Builder 패턴 심층 분석 (Entity 생성 관점)</h2>
+      <div class="step">
+        <span class="pill code">예시 코드</span>
+        <pre><code>Board board = Board.builder() // 빌더 시작
+    .title("스프링 학습 기록") // 제목 필드 지정
+    .content("오늘은 엔티티를 배웠다") // 내용 필드 지정
+    .writer(member) // 작성자 엔티티 연결
+    .build(); // 최종 Board 객체 생성
+</code></pre>
+      </div>
+      <div class="step">
+        <span class="pill grammar">왜 빌더가 좋은가?</span>
+        <ul>
+          <li>가독성: 어떤 값이 어떤 필드로 들어가는지 한눈에 보입니다.</li>
+          <li>안전성: 생성자 파라미터 순서 실수를 줄입니다.</li>
+          <li>확장성: 나중에 필드가 늘어나도 코드 수정 부담이 줄어듭니다.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>5) Granular Analysis 예시 (요청하신 메서드 분해 유지)</h2>
+      <div class="step">
+        <span class="pill grammar">public String joinForm(Model model) 한 줄 분석</span>
+        <table>
+          <thead>
+            <tr>
+              <th>부품</th>
+              <th>문법적 정체</th>
+              <th>왜 필요한가?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>public</code></td>
+              <td>접근 제어자</td>
+              <td>스프링 프레임워크가 외부에서 호출 가능해야 하기 때문</td>
+            </tr>
+            <tr>
+              <td><code>String</code></td>
+              <td>반환형</td>
+              <td>MVC에서 반환 문자열은 뷰 템플릿 이름</td>
+            </tr>
+            <tr>
+              <td><code>Model model</code></td>
+              <td>파라미터</td>
+              <td>컨트롤러 -> 뷰로 데이터를 전달하는 상자</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">이번 레벨의 메인 주제는 Entity이지만, 요청하신 Granular Analysis 원칙을 유지하기 위해 메서드 문법 분해를 고정 섹션으로 포함했습니다.</div>
+    </section>
+
+    <section>
+      <h2>6) Lv.3 실습 체크리스트</h2>
+      <div class="step">
+        <span class="pill check">완료 기준</span>
+        <ol>
+          <li>Board 엔티티 필드(id/title/content/writer) 선정 이유를 설명할 수 있다.</li>
+          <li><code>@ManyToOne</code> + <code>@JoinColumn</code> 관계를 말로 설명할 수 있다.</li>
+          <li>왜 <code>FetchType.LAZY</code>를 기본으로 두는지 설명할 수 있다.</li>
+          <li>Builder 패턴으로 엔티티를 생성하는 이유를 설명할 수 있다.</li>
+        </ol>
+      </div>
+      <div class="note">Lv.4는 운영원칙대로 시작에 Lv.3 복습을 넣고, 다음 순서인 Repository 심화(커스텀 쿼리 포함)로 진행합니다.</div>
+    </section>
+
+    <p class="footer">Spring Boot 3 Master Class - Lv.3 (Entity 심화)</p>
+  </div>
+</body>
+</html>

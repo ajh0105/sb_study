@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>03/18 시험 대비 완벽 강의안 — SQL · JPA · Docker</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"/>
+  <style>
+    :root {
+      --primary: #0d6efd;
+      --section1: #0d6efd;
+      --section2: #198754;
+      --section3: #dc3545;
+      --section4: #fd7e14;
+      --dark-bg: #1e1e2e;
+    }
+    body { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; background: #f8f9fa; }
+
+    /* ── Navbar ── */
+    .navbar-brand { font-weight: 800; font-size: 1.1rem; }
+    .nav-pills .nav-link.active { background: var(--primary); }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+      color: white; padding: 3rem 0 2.5rem; margin-bottom: 2rem;
+    }
+    .hero h1 { font-size: 2rem; font-weight: 800; }
+    .hero .badge { font-size: 0.85rem; padding: .45em .8em; }
+
+    /* ── Section headers ── */
+    .section-header {
+      border-left: 6px solid; padding: 0.6rem 1rem; margin-bottom: 1.5rem;
+      font-size: 1.6rem; font-weight: 700; border-radius: 0 8px 8px 0;
+    }
+    .s1 { border-color: var(--section1); color: var(--section1); background: #e8f0fe; }
+    .s2 { border-color: var(--section2); color: var(--section2); background: #e6f4ea; }
+    .s3 { border-color: var(--section3); color: var(--section3); background: #fce8e6; }
+    .s4 { border-color: var(--section4); color: var(--section4); background: #fff3e0; }
+
+    /* ── Cards ── */
+    .concept-card {
+      border: none; box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      border-radius: 12px; margin-bottom: 1.5rem;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .concept-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.12); }
+    .concept-card .card-header {
+      font-weight: 700; font-size: 1.05rem; border-radius: 12px 12px 0 0 !important;
+    }
+
+    /* ── Code blocks ── */
+    pre { border-radius: 10px; margin: 0; }
+    pre code.hljs { font-size: 0.82rem; line-height: 1.6; }
+    .code-wrap { position: relative; }
+    .copy-btn {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(255,255,255,.15); border: none; color: #ccc;
+      border-radius: 5px; padding: 2px 8px; font-size: .75rem; cursor: pointer;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,.3); color: white; }
+
+    /* ── Tables ── */
+    .table thead { background: #343a40; color: white; }
+    .table-custom { font-size: .9rem; }
+
+    /* ── Quiz section ── */
+    .quiz-section { background: #fff9e6; border: 2px solid #ffc107; border-radius: 12px; padding: 1.5rem; }
+    .quiz-item { margin-bottom: 1rem; }
+    .quiz-q { font-weight: 700; color: #856404; margin-bottom: .3rem; }
+    .quiz-a { background: white; border-left: 4px solid #ffc107; padding: .6rem 1rem; border-radius: 0 8px 8px 0; display: none; }
+    .quiz-toggle { cursor: pointer; font-size: .8rem; color: #0d6efd; text-decoration: underline; }
+
+    /* ── Diagram box ── */
+    .diagram {
+      background: var(--dark-bg); color: #a6e3a1; font-family: 'Courier New', monospace;
+      font-size: .82rem; line-height: 1.8; padding: 1.2rem 1.5rem;
+      border-radius: 10px; overflow-x: auto; white-space: pre;
+    }
+
+    /* ── Checklist ── */
+    .checklist li { list-style: none; padding-left: .3rem; margin-bottom: .4rem; }
+    .checklist li::before { content: "☐ "; color: #6c757d; }
+
+    /* ── TOC sidebar ── */
+    .toc-sidebar { position: sticky; top: 80px; }
+    .toc-sidebar a { color: #495057; text-decoration: none; font-size: .88rem; display: block; padding: .2rem .5rem; border-radius: 5px; }
+    .toc-sidebar a:hover { background: #e9ecef; color: var(--primary); }
+    .toc-sidebar .toc-title { font-weight: 700; font-size: .9rem; color: #343a40; margin-bottom: .5rem; }
+
+    /* ── Back to top ── */
+    #backTop { position: fixed; bottom: 30px; right: 30px; z-index: 999; display: none; border-radius: 50%; width: 44px; height: 44px; }
+
+    /* ── Progress bar ── */
+    #readProgress { position: fixed; top: 0; left: 0; width: 0%; height: 4px; background: var(--primary); z-index: 1050; transition: width .1s; }
+
+    @media (max-width: 991px) { .toc-sidebar { display: none; } }
+  </style>
+</head>
+<body>
+
+<div id="readProgress"></div>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow">
+  <div class="container">
+    <span class="navbar-brand">📚 시험 대비 강의안</span>
+    <div class="d-flex gap-2">
+      <span class="badge bg-primary">SQL</span>
+      <span class="badge bg-success">JPA</span>
+      <span class="badge bg-warning text-dark">Docker</span>
+      <span class="badge bg-danger">D-3</span>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero text-center">
+  <div class="container">
+    <h1>🎯 03/18 시험 대비 완벽 강의안</h1>
+    <p class="lead mb-3 opacity-75">데이터베이스 기초 → SQL 실무 → JPA 연동 → Docker 배포</p>
+    <div class="d-flex justify-content-center gap-2 flex-wrap">
+      <span class="badge bg-light text-dark">PostgreSQL 14</span>
+      <span class="badge bg-light text-dark">Spring Boot 3</span>
+      <span class="badge bg-light text-dark">Docker + Ubuntu 22.04</span>
+      <span class="badge bg-light text-dark">JPA / Hibernate</span>
+    </div>
+  </div>
+</section>
+
+<!-- Main -->
+<div class="container mb-5">
+  <div class="row">
+
+    <!-- TOC Sidebar -->
+    <div class="col-lg-2">
+      <div class="toc-sidebar">
+        <p class="toc-title">📋 목차</p>
+        <a href="#section1">1. DB 기초</a>
+        <a href="#section2">2. SQL 실무</a>
+        <a href="#section3">3. JPA 연동</a>
+        <a href="#section4">4. Docker 배포</a>
+        <a href="#summary" class="mt-2 fw-bold text-danger">📌 최종 요약</a>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="col-lg-10">
+
+      <!-- ========== SECTION 1 ========== -->
+      <section id="section1" class="mb-5">
+        <h2 class="section-header s1">① 데이터베이스 기초</h2>
+
+        <!-- 핵심 개념 -->
+        <div class="concept-card card">
+          <div class="card-header bg-primary text-white">📖 관계형 데이터베이스 핵심 용어</div>
+          <div class="card-body">
+            <table class="table table-bordered table-hover table-custom">
+              <thead><tr><th>용어</th><th>설명</th><th>예시</th></tr></thead>
+              <tbody>
+                <tr><td><strong>테이블(Table)</strong></td><td>데이터를 저장하는 2차원 표</td><td><code>users</code> 테이블</td></tr>
+                <tr><td><strong>기본키(PK)</strong></td><td>각 행을 유일하게 식별. 중복·NULL 불가</td><td><code>id = 1</code></td></tr>
+                <tr><td><strong>외래키(FK)</strong></td><td>다른 테이블의 PK를 참조</td><td><code>orders.user_id → users.id</code></td></tr>
+                <tr><td><strong>인덱스(Index)</strong></td><td>빠른 검색을 위한 B-Tree 색인 구조</td><td><code>CREATE INDEX ON users(email)</code></td></tr>
+                <tr><td><strong>트랜잭션</strong></td><td>하나의 작업 단위 (All or Nothing)</td><td>계좌 이체</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ACID -->
+        <div class="concept-card card">
+          <div class="card-header bg-primary text-white">🔒 ACID 트랜잭션 특성 <span class="badge bg-warning text-dark ms-2">시험 필수</span></div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="p-3 rounded" style="background:#e8f0fe; border-left: 4px solid #0d6efd;">
+                  <strong>A — Atomicity (원자성)</strong>
+                  <p class="mb-0 mt-1 small">트랜잭션 내 작업은 전부 성공하거나 전부 실패. 계좌 이체 시 출금과 입금은 반드시 같이 성공해야 함.</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="p-3 rounded" style="background:#e6f4ea; border-left: 4px solid #198754;">
+                  <strong>C — Consistency (일관성)</strong>
+                  <p class="mb-0 mt-1 small">트랜잭션 전후 데이터는 항상 일관된(무결성을 만족하는) 상태.</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="p-3 rounded" style="background:#fce8e6; border-left: 4px solid #dc3545;">
+                  <strong>I — Isolation (격리성)</strong>
+                  <p class="mb-0 mt-1 small">동시에 실행되는 여러 트랜잭션이 서로의 중간 상태를 볼 수 없음.</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="p-3 rounded" style="background:#fff3e0; border-left: 4px solid #fd7e14;">
+                  <strong>D — Durability (지속성)</strong>
+                  <p class="mb-0 mt-1 small">커밋된 트랜잭션은 장애가 나도 영구 보존됨.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 인덱스 -->
+        <div class="concept-card card">
+          <div class="card-header bg-primary text-white">🌳 인덱스 B-Tree 원리 <span class="badge bg-warning text-dark ms-2">시험 필수</span></div>
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-6">
+                <div class="diagram">         [50]
+        /         \
+    [25]           [75]
+   /    \          /   \
+ [10]  [30]     [60]  [90]
+
+🔍 id = 60 검색
+→ 50보다 큼 → 오른쪽
+→ 75보다 작음 → 왼쪽
+→ 60 발견! (3번만에)</div>
+              </div>
+              <div class="col-md-6">
+                <div class="alert alert-success"><strong>인덱스가 있을 때</strong><br>100만 건 → 약 <strong>20번</strong> 비교 (log₂ 1,000,000)</div>
+                <div class="alert alert-danger"><strong>인덱스가 없을 때</strong><br>100만 건 → 최대 <strong>100만 번</strong> 비교 (Full Scan)</div>
+                <div class="alert alert-warning"><strong>⚠️ 단점</strong><br>INSERT/UPDATE/DELETE 시 인덱스도 갱신 → 쓰기 성능 저하</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PostgreSQL 데이터 타입 -->
+        <div class="concept-card card">
+          <div class="card-header bg-primary text-white">🐘 PostgreSQL 특유의 데이터 타입</div>
+          <div class="card-body">
+            <table class="table table-sm table-bordered table-custom">
+              <thead><tr><th>타입</th><th>설명</th><th>예시</th></tr></thead>
+              <tbody>
+                <tr><td><code>SERIAL</code></td><td>자동 증가 정수 (PK용)</td><td><code>id SERIAL PRIMARY KEY</code></td></tr>
+                <tr><td><code>BOOLEAN</code></td><td>true / false</td><td><code>is_active BOOLEAN DEFAULT true</code></td></tr>
+                <tr><td><code>TIMESTAMP</code></td><td>날짜+시간</td><td><code>created_at TIMESTAMP DEFAULT NOW()</code></td></tr>
+                <tr><td><code>JSONB</code></td><td>JSON 이진 저장 (검색 가능)</td><td><code>meta JSONB</code></td></tr>
+                <tr><td><code>TEXT[]</code></td><td>문자열 배열</td><td><code>tags TEXT[]</code></td></tr>
+                <tr><td><code>UUID</code></td><td>고유 식별자</td><td><code>id UUID DEFAULT gen_random_uuid()</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Quiz 1 -->
+        <div class="quiz-section">
+          <h5 class="mb-3">🧠 섹션 1 — 시험에 꼭 나오는 핵심 퀴즈</h5>
+          <div class="quiz-item">
+            <p class="quiz-q">Q1. 기본키(Primary Key)의 필수 조건 2가지는?</p>
+            <span class="quiz-toggle" onclick="toggleQuiz(this)">▶ 정답 보기</span>
+            <div class="quiz-a">① 유일성 (중복값 불가) &nbsp; ② NOT NULL (NULL 불가)</div>
+          </div>
+          <div class="quiz-item">
+            <p class="quiz-q">Q2. 트랜잭션의 ACID 중 "격리성(Isolation)"이란 무엇인가?</p>
+            <span class="quiz-toggle" onclick="toggleQuiz(this)">▶ 정답 보기</span>
+            <div class="quiz-a">동시에 실행되는 여러 트랜잭션이 서로의 중간 상태를 볼 수 없도록 격리하는 성질. A가 이체 중일 때 B는 이체 완료/미완료 상태만 볼 수 있고 중간 상태는 볼 수 없음.</div>
+          </div>
+          <div class="quiz-item">
+            <p class="quiz-q">Q3. 인덱스를 생성하면 SELECT가 빨라지는데, 어떤 작업의 성능이 저하되는가?</p>
+            <span class="quiz-toggle" onclick="toggleQuiz(this)">▶ 정답 보기</span>
+            <div class="quiz-a">INSERT, UPDATE, DELETE — 데이터 변경 시 인덱스도 함께 갱신해야 하기 때문에 쓰기 성능이 저하됨.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== SECTION 2 ========== -->
+      <section id="section2" class="mb-5">
+        <h2 class="section-header s2">② SQL 실무 (PostgreSQL)</h2>
+
+        <!-- SQL 실행순서 -->
+        <div class="concept-card card">
+          <div class="card-header bg-success text-white">⚡ SQL 실행 순서 <span class="badge bg-warning text-dark ms-2">시험 필수</span></div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="alert alert-secondary">
+                  <strong>✍️ 작성 순서</strong><br>
+                  <code>SELECT → FROM → WHERE → GROUP BY → HAVING → ORDER BY</code>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="alert alert-success">
+                  <strong>⚙️ 실행 순서</strong><br>
+                  <code>FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY</code>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 테이블 생성 -->
+        <div class="concept-card card">
+          <div class="card-header bg-success text-white">📋 테이블 생성 (DDL)</div>
+          <div class="card-body">
+            <div class="code-wrap">
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+              <pre><code class="language-sql">-- 사용자 테이블 생성
+CREATE TABLE users (
+    id         SERIAL PRIMARY KEY,           -- 자동 증가 PK
+    name       VARCHAR(100) NOT NULL,        -- 이름 (필수)
+    email      VARCHAR(200) UNIQUE NOT NULL, -- 이메일 (중복 불가)
+    age        INTEGER CHECK (age >= 0),     -- 나이 (0 이상)
+    is_active  BOOLEAN DEFAULT true,         -- 기본값 true
+    created_at TIMESTAMP DEFAULT NOW()       -- 등록일
+);
+
+-- 주문 테이블 (외래키 포함)
+CREATE TABLE orders (
+    id       SERIAL PRIMARY KEY,
+    user_id  INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    -- ON DELETE CASCADE: 부모(users) 삭제 시 자식(orders)도 자동 삭제
+    product  VARCHAR(200) NOT NULL,
+    amount   INTEGER NOT NULL,
+    order_at TIMESTAMP DEFAULT NOW()
+);</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- JOIN 시각화 -->
+        <div class="concept-card card">
+          <div class="card-header bg-success text-white">🔗 JOIN 시각화 <span class="badge bg-warning text-dark ms-2">시험 필수</span></div>
+          <div class="card-body">
+            <div class="diagram">users 테이블              orders 테이블
+┌────┬──────┐            ┌────┬─────────┬─────────┐
+│ id │ name │            │ id │ user_id │ product │
+├────┼──────┤            ├────┼─────────┼─────────┤
+│  1 │ 홍길동│            │  1 │    1    │ 노트북   │
+│  2 │ 김철수│            │  2 │    1    │ 마우스   │
+│  3 │ 이영희│            │  3 │    2    │ 키보드   │
+└────┴──────┘            └────┴─────────┴─────────┘
+         INNER JOIN 결과:          LEFT JOIN 추가 결과:
+         홍길동 | 노트북           이영희 | NULL (주문없음)
+         홍길동 | 마우스
+         김철수 | 키보드</div>
+            <div class="code-wrap mt-3">
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+              <pre><code class="language-sql">-- INNER JOIN: 주문이 있는 사용자만 (교집합)
+SELECT u.name, o.product
+FROM users u
+INNER JOIN orders o ON u.id = o.user_id;
+
+-- LEFT JOIN: 주문 없는 사용자도 포함 (왼쪽 테이블 전체)
+SELECT u.name, COALESCE(o.product, '주문없음') AS product
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id;</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subquery -->
+        <div class="concept-card card">
+          <div class="card-header bg-success text-white">🔍 집계 함수 & 서브쿼리</div>
+          <div class="card-body">
+            <div class="code-wrap">
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+              <pre><code class="language-sql">-- GROUP BY + HAVING (2명 이상인 나이대만 조회)
+SELECT age, COUNT(*) AS 인원수
+FROM users
+GROUP BY age
+HAVING COUNT(*) >= 2
+ORDER BY age;
+
+-- 서브쿼리: 평균 나이보다 많은 사용자 조회
+-- (괄호 안 먼저 실행 → 평균값 반환 → 비교)
+SELECT name, age
+FROM users
+WHERE age > (SELECT AVG(age) FROM users);
+
+-- PostgreSQL 고유: RETURNING — INSERT 후 결과 즉시 반환
+INSERT INTO users (name, email)
+VALUES ('테스트', 'test@test.com')
+RETURNING id, created_at;
+
+-- UPSERT: 있으면 UPDATE, 없으면 INSERT
+INSERT INTO users (email, name) VALUES ('hong@test.com', '홍길동')
+ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name;</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quiz 2 -->
+        <div class="quiz-section">
+          <h5 class="mb-3">🧠 섹션 2 — 시험에 꼭 나오는 핵심 퀴즈</h5>
+          <div class="quiz-item">
+            <p class="quiz-q">Q1. INNER JOIN과 LEFT JOIN의 차이를 설명하시오.</p>
+            <span class="quiz-toggle" onclick="toggleQuiz(this)">▶ 정답 보기</span>
+            <div class="quiz-a">INNER JOIN: 양쪽 테이블 모두에 일치하는 행만 반환 (교집합). LEFT JOIN: 왼쪽 테이블의 모든 행을 반환하고, 오른쪽에 일치하는 행이 없으면 NULL로 채움.</div>
+          </div>
+          <div class="quiz-item">
+            <p class="quiz-q">Q2. 다음 SQL의 실행 순서를 나열하시오: <code>SELECT name FROM users WHERE age > 20 GROUP BY name HAVING COUNT(*) > 1 ORDER BY name</code></p>
+            <span class="quiz-toggle" onclick="toggleQuiz(this)">▶ 정답 보기</span>
+            <div class="quiz-a">FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY</div>
+          </div>
+          <div class="quiz-item">
+            <p class="quiz-q">Q3. <code>ON DELETE CASCADE</code>와 <code>ON DELETE RESTRICT</code>의 차이는?</p>
+            <span class="quiz-toggle" onclick="toggleQuiz(this)">▶ 정답 보기</span>
+            <div class="quiz-a">CASCADE: 부모 행 삭제 시 자식 행도 자동 삭제. RESTRICT: 자식 행이 존재하면 부모 행 삭제 자체를 막음 (오류 발생).</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== SECTION 3 ========== -->
+      <section id="section3" class="mb-5">
+        <h2 class="section-header s3">③ JPA 연동</h2>
+
+        <!-- JPA 개요 -->
+        <div class="concept-card card">
+          <div class="card-header bg-danger text-white">🔄 JPA란? — Java 객체 ↔ DB 테이블 자동 매핑</div>
+          <div class="card-body">
+            <div class="diagram">개발자가 하는 일:   Java 클래스(Entity) 작성
+JPA가 하는 일:      SQL 자동 생성 및 실행
+
+users 테이블              User.java 클래스
+┌──────────────┐          ┌──────────────────┐
+│ id     (int) │  ←자동→  │ @Id Long id       │
+│ name   (str) │  ←매핑→  │ String name       │
+│ email  (str) │  ←매핑→  │ String email      │
+└──────────────┘          └──────────────────┘
+
+결과: SQL 없이 Java 코드로 DB 조작 가능!</div>
+          </div>
+        </div>
+
+        <!-- 어노테이션 -->
+        <div class="concept-card card">
+          <div class="card-header bg-danger text-white">🏷️ 핵심 어노테이션</div>
+          <div class="card-body">
+            <div class="code-wrap">
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+              <pre><code class="language-java">@Entity                          // ① 이 클래스를 DB 테이블과 매핑
+@Table(name = "users")           // ② 매핑할 테이블 이름 지정
+public class User {
+
+    @Id                          // ③ 이 필드가 기본키(PK)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // ④ PK 자동 생성 — PostgreSQL SERIAL에 위임
+    private Long id;
+
+    @Column(name = "name", nullable = false, length = 100)
+    // ⑤ 컬럼명, null 허용 여부, 최대 길이 설정
+    private String name;
+
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    @Column(name = "is_active", columnDefinition = "boolean default true")
+    private Boolean isActive;
+
+    protected User() {} // JPA는 기본 생성자 필수!
+
+    public User(String name, String email) {
+        this.name = name;
+        this.email = email;
+    }
+}</code></pre>
+            </div>
+            <table class="table table-sm table-bordered table-custom mt-3">
+              <thead><tr><th>어노테이션</th><th>의미</th></tr></thead>
+              <tbody>
+                <tr><td><code>@Entity</code></td><td>JPA가 관리하는 엔티티 클래스</td></tr>
+                <tr><td><code>@Table</code></td><td>매핑할 DB 테이블 이름 지정</td></tr>
+                <tr><td><code>@Id</code></td><td>기본키(PK) 필드 지정</td></tr>
+                <tr><td><code>@GeneratedValue(IDENTITY)</code></td><td>DB의 AUTO_INCREMENT / SERIAL에 PK 생성 위임</td></tr>
+                <tr><td><code>@Column</code></td><td>컬럼명, nullable, length 등 세부 설정</td></tr>
+                <tr><td><code>@OneToMany</code></td><td>1:N 관계 매핑</td></tr>
+                <tr><td><code>@ManyToOne</code></td><td>N:1 관계 매핑 (FK가 있는 쪽)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 영속성 컨텍스트 -->
+        <div class="concept-card card">
+          <div class="card-header bg-danger text-white">💾 영속성 컨텍스트 & 변경 감지 <span class="badge bg-warning text-dark ms-2">시험 필수</span></div>
+          <div class="card-body">
+            <div class="diagram">[애플리케이션]     [영속성 컨텍스트]       [DB]
+      │                   │                    │
+      │ find(User, 1)     │ ← 캐시 없으면       │
+      │ ─────────────→    │ ─── SELECT ────→   │
+      │                   │ ←── 결과 ──────    │
+      │ ←──────────────   │ (이후 1차 캐시 저장)│
+      │                   │                    │
+      │ find(User, 1) 재호출                    │
+      │ ─────────────→    │ (캐시에 있음!)      │
+      │ ←── 즉시 반환 ──   │ (DB 쿼리 없음)     │</div>
+            <div class="code-wrap mt-3">
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+              <pre><code class="language-java">// ✨ 변경 감지(Dirty Checking) — JPA의 마법
+// UPDATE SQL을 직접 짜지 않아도 된다!
+
+@Transactional
+public void updateUserName(Long id, String newName) {
+    User user = userRepository.findById(id).get();
+    // 영속성 컨텍스트에서 관리 시작
+
+    user.setName(newName);  // 단순 객체 값 변경
+    // ↑ 트랜잭션 종료(커밋) 시점에 JPA가 변경을 감지하여
+    //   자동으로 UPDATE users SET name = ? WHERE id = ? 실행!
+    // 별도로 save()를 호출하지 않아도 됨
+}</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Spring Data JPA -->
+        <div class="concept-card card">
+          <div class="card-header bg-danger text-white">🗂️ Spring Data JPA Repository</div>
+          <div class="card-body">
+            <div class="code-wrap">
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+              <pre><code class="language-java">// JpaRepository 상속만으로 CRUD 자동 완성!
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+
+    // 메서드명 규칙으로 쿼리 자동 생성
+    List&lt;User&gt; findByName(String name);
+    // → SELECT * FROM users WHERE name = ?
+
+    List&lt;User&gt; findByAgeGreaterThanEqual(int age);
+    // → SELECT * FROM users WHERE age >= ?
+
+    Optional&lt;User&gt; findByEmail(String email);
+    // → SELECT * FROM users WHERE email = ? LIMIT 1
+
+    // @Query: 직접 JPQL 작성 (테이블명이 아닌 클래스명 사용!)
+    @Query("SELECT u FROM User u WHERE u.age > :age AND u.isActive = true")
+    List&lt;User&gt; findActiveUsersOlderThan(@Param("age") int age);
+}</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- application.yml -->
+        <div class="concept-card card">
+          <div class="card-header bg-danger text-white">⚙️ application.yml DB 연결 설정</div>
+          <div class="card-body">
+            <div class="code-wrap">
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+              <pre><code class="language-yaml">spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/geoje   # DB 주소:포트/DB명
+    username: postgres
+    password: 1004
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update    # create / update / validate / none
+    show-sql: true        # 실행 SQL 콘솔 출력
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect</code></pre>
+            </div>
+            <table class="table table-sm table-bordered table-custom mt-3">
+              <thead><tr><th>ddl-auto 옵션</th><th>동작</th><th>사용 시점</th></tr></thead>
+              <tbody>
+                <tr><td><code>create</code></td><td>기존 테이블 삭제 후 재생성</td><td class="text-danger">초기 개발 (데이터 삭제됨!)</td></tr>
+                <tr><td><code>update</code></td><td>변경사항만 반영 (데이터 유지)</td><td class="text-warning">개발 중</td></tr>
+                <tr><td><code>validate</code></td><td>스키마 일치 검증만</td><td>운영</td></tr>
+                <tr><td><code>none</code></td><td>아무것도 안 함</td><td class="text-success">운영 (권장)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Quiz 3 -->
+        <div class="quiz-section">
+          <h5 class="mb-3">🧠 섹션 3 — 시험에 꼭 나오는 핵심 퀴즈</h5>
+          <div class="quiz-item">
+            <p class="quiz-q">Q1. <code>@GeneratedValue(strategy = GenerationType.IDENTITY)</code>의 의미는?</p>
+            <span class="quiz-toggle" onclick="toggleQuiz(this)">▶ 정답 보기</span>
+            <div class="quiz-a">PK 값 생성을 데이터베이스에 위임한다는 의미. PostgreSQL의 SERIAL처럼 DB가 자동으로 PK 값을 증가시켜 할당함.</div>
+          </div>
+          <div class="quiz-item">
+            <p class="quiz-q">Q2. JPA의 "변경 감지(Dirty Checking)"란 무엇인가?</p>
+            <span class="quiz-toggle" onclick="toggleQuiz(this)">▶ 정답 보기</span>
+            <div class="quiz-a">영속성 컨텍스트가 관리하는 엔티티의 값이 변경되면, 트랜잭션 커밋 시점에 JPA가 자동으로 변경을 감지하여 UPDATE SQL을 실행하는 기능. 개발자가 별도 save()/update() 호출 불필요.</div>
+          </div>
+          <div class="quiz-item">
+            <p class="quiz-q">Q3. <code>FetchType.LAZY</code>와 <code>FetchType.EAGER</code>의 차이는?</p>
+            <span class="quiz-toggle" onclick="toggleQuiz(this)">▶ 정답 보기</span>
+            <div class="quiz-a">LAZY(지연 로딩): 연관 엔티티를 실제 사용 시점에 SELECT. EAGER(즉시 로딩): 조회 시 연관 엔티티를 함께 즉시 로딩. 불필요한 쿼리를 줄이기 위해 기본적으로 LAZY 권장.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== SECTION 4 ========== -->
+      <section id="section4" class="mb-5">
+        <h2 class="section-header s4">④ Docker 배포 실습</h2>
+
+        <!-- 이미지 vs 컨테이너 -->
+        <div class="concept-card card">
+          <div class="card-header text-white" style="background: var(--section4);">🐳 이미지 vs 컨테이너 — 붕어빵 비유</div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="card border-primary h-100">
+                  <div class="card-body text-center">
+                    <div style="font-size:3rem">🏭</div>
+                    <h5 class="text-primary">이미지 (Image)</h5>
+                    <p class="text-muted">= <strong>붕어빵 틀</strong></p>
+                    <ul class="text-start small">
+                      <li>실행 환경이 굳어진 "설계도"</li>
+                      <li><strong>읽기 전용 (Read-Only)</strong></li>
+                      <li>Docker Hub에 공유 가능</li>
+                      <li>예: <code>ubuntu:22.04</code></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card border-success h-100">
+                  <div class="card-body text-center">
+                    <div style="font-size:3rem">🐟</div>
+                    <h5 class="text-success">컨테이너 (Container)</h5>
+                    <p class="text-muted">= <strong>붕어빵</strong></p>
+                    <ul class="text-start small">
+                      <li>이미지를 실행한 인스턴스</li>
+                      <li><strong>읽기/쓰기 가능</strong></li>
+                      <li>같은 이미지로 여러 개 실행 가능</li>
+                      <li>예: <code>ubuntu01</code>, <code>ubuntu02</code></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 레이어 구조 -->
+        <div class="concept-card card">
+          <div class="card-header text-white" style="background: var(--section4);">🧱 Docker 레이어 구조 <span class="badge bg-dark ms-2">시험 필수</span></div>
+          <div class="card-body">
+            <div class="diagram">┌────────────────────────────────────┐
+│  컨테이너 레이어 (읽기/쓰기)          │ ← docker run 시 생성
+├────────────────────────────────────┤
+│  RUN apt install nginx 레이어       │ ← Dockerfile 레이어 3
+├────────────────────────────────────┤
+│  RUN apt update 레이어              │ ← Dockerfile 레이어 2
+├────────────────────────────────────┤
+│  FROM ubuntu:22.04 기반 레이어      │ ← Dockerfile 레이어 1
+└────────────────────────────────────┘
+
+✅ 각 레이어는 캐시됨 → 변경된 레이어 이후만 재빌드
+✅ 이미지 레이어는 읽기 전용, 컨테이너 레이어만 쓰기 가능</div>
+          </div>
+        </div>
+
+        <!-- 핵심 명령어 -->
+        <div class="concept-card card">
+          <div class="card-header text-white" style="background: var(--section4);">⌨️ Docker 핵심 명령어 완전 정복</div>
+          <div class="card-body">
+            <div class="code-wrap">
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+              <pre><code class="language-bash"># ── 이미지 관련 ──
+docker pull ubuntu:22.04          # 이미지 다운로드
+docker images                     # 이미지 목록 확인
+docker rmi ubuntu:22.04           # 이미지 삭제
+
+# ── 컨테이너 생성 및 실행 (run) ──
+docker run -it -d --name ubuntu01 -p 5432:5432 -p 8080:8080 ubuntu:22.04
+#          │  │  │              │  └─ 호스트포트:컨테이너포트 (포트 포워딩)
+#          │  │  └─ 컨테이너 이름 지정
+#          │  └─ 백그라운드 실행 (터미널 점유 안 함)
+#          └─ 터미널(-t) + 표준입력(-i) 유지
+
+# ── 컨테이너 관리 ──
+docker ps                         # 실행 중인 컨테이너 목록
+docker ps -a                      # 전체 컨테이너 목록 (중지 포함)
+docker exec -it ubuntu01 bash     # 실행 중 컨테이너 접속
+docker stop ubuntu01              # 컨테이너 중지
+docker start ubuntu01             # 컨테이너 시작
+docker rm ubuntu01                # 컨테이너 삭제
+
+# ── 파일 전송 ──
+docker cp tour.jar ubuntu01:/root/   # Host → Container
+docker cp ubuntu01:/root/tour.jar ./ # Container → Host
+
+# ── 로그 ──
+docker logs ubuntu01              # 컨테이너 로그
+docker logs -f ubuntu01           # 실시간 로그 스트리밍
+
+# ── 커밋 & 허브 ──
+docker commit ubuntu01 계정명/tour-geoje:1.0  # 컨테이너 → 이미지
+docker login                      # Docker Hub 로그인
+docker push 계정명/tour-geoje:1.0  # Hub에 업로드
+docker pull 계정명/tour-geoje:1.0  # Hub에서 다운로드</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- 포트 포워딩 -->
+        <div class="concept-card card">
+          <div class="card-header text-white" style="background: var(--section4);">🔌 포트 포워딩 시각화</div>
+          <div class="card-body">
+            <div class="diagram">외부(브라우저)        Host (Windows)          Container (Ubuntu)
+     │                     │                          │
+     │ → localhost:8080 → │  -p 8080:8080   →        │ :8080 (Spring Boot)
+     │ → localhost:5432 → │  -p 5432:5432   →        │ :5432 (PostgreSQL)
+     │ → localhost:80   → │  -p 80:80       →        │ :80   (Nginx)
+
+포트 충돌 시 Host 포트만 변경:
+  docker run ... -p 5433:5432 ...   # 5433으로 접속하면 컨테이너 5432로 전달</div>
+          </div>
+        </div>
+
+        <!-- PostgreSQL 외부 접속 설정 -->
+        <div class="concept-card card">
+          <div class="card-header text-white" style="background: var(--section4);">🔓 PostgreSQL 외부 접속 허용 (핵심 설정) <span class="badge bg-dark ms-2">시험 필수</span></div>
+          <div class="card-body">
+            <div class="code-wrap">
+              <button class="copy-btn" onclick="copyCode(this)">복사</button>
+              <pre><code class="language-bash"># 1. postgresql.conf 수정
+vim /etc/postgresql/14/main/postgresql.conf
+# listen_addresses = 'localhost'  →  listen_addresses = '*'
+#                    ↑ 기본(로컬만)       ↑ 모든 IP 허용
+
+# 2. pg_hba.conf 수정 (클라이언트 인증 설정)
+vim /etc/postgresql/14/main/pg_hba.conf
+# 아래 줄 추가:
+# host  all  all  0.0.0.0/0  md5
+#       ↑    ↑    ↑          ↑ 비밀번호 인증(md5)
+#     DB명 유저  모든IP
+
+# 3. PostgreSQL 재시작
+service postgresql restart
+
+# 4. 확인 (0.0.0.0:5432 가 표시되어야 성공)
+netstat -tuln | grep 5432</code></pre>
+            </div>
+            <div class="alert alert-danger mt-3">
+              <strong>❌ pgAdmin 접속 안 될 때 99% 원인:</strong><br>
+              ① <code>listen_addresses</code>를 <code>*</code>으로 변경하지 않음<br>
+              ② Docker run 시 포트(-p 5432:5432)를 열지 않음
+            </div>
+          </div>
+        </div>
+
+        <!-- 전체 흐름 -->
+        <div class="concept-card card">
+          <div class="card-header text-white" style="background: var(--section4);">📋 전체 배포 흐름 요약</div>
+          <div class="card-body">
+            <ol class="list-group list-group-numbered">
+              <li class="list-group-item"><code>docker run -it -d --name ubuntu01 -p 5432:5432 -p 8080:8080 ubuntu:22.04</code> — 포트 열어서 컨테이너 생성</li>
+              <li class="list-group-item"><code>docker exec -it ubuntu01 bash</code> → <code>apt install -y postgresql</code> — PostgreSQL 설치</li>
+              <li class="list-group-item"><code>service postgresql start</code> → <code>CREATE DATABASE geoje; ALTER USER postgres PASSWORD '1004';</code></li>
+              <li class="list-group-item"><code>listen_addresses = '*'</code> 수정 → <code>service postgresql restart</code></li>
+              <li class="list-group-item"><code>apt install -y openjdk-21-jdk</code> — JDK 설치</li>
+              <li class="list-group-item"><code>docker cp tour.jar ubuntu01:/root/</code> → <code>java -jar tour.jar</code></li>
+              <li class="list-group-item"><code>docker commit ubuntu01 계정명/tour-geoje:1.0</code> → <code>docker push ...</code></li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Quiz 4 -->
+        <div class="quiz-section">
+          <h5 class="mb-3">🧠 섹션 4 — 시험에 꼭 나오는 핵심 퀴즈</h5>
+          <div class="quiz-item">
+            <p class="quiz-q">Q1. <code>docker run</code>과 <code>docker exec</code>의 차이는?</p>
+            <span class="quiz-toggle" onclick="toggleQuiz(this)">▶ 정답 보기</span>
+            <div class="quiz-a">docker run: 이미지로부터 새 컨테이너를 생성하고 실행. docker exec: 이미 실행 중인 컨테이너 내부에 명령어를 추가 실행 (컨테이너를 새로 만들지 않음).</div>
+          </div>
+          <div class="quiz-item">
+            <p class="quiz-q">Q2. Docker 이미지의 레이어(Layer) 구조의 장점은?</p>
+            <span class="quiz-toggle" onclick="toggleQuiz(this)">▶ 정답 보기</span>
+            <div class="quiz-a">각 레이어가 캐시되므로, 이미지 재빌드 시 변경된 레이어 이후만 다시 빌드함. 이미지 다운로드 시에도 이미 있는 레이어는 재사용해 시간과 용량 절약.</div>
+          </div>
+          <div class="quiz-item">
+            <p class="quiz-q">Q3. <code>docker run -p 5433:5432</code>에서 앞의 5433과 뒤의 5432는 각각 무엇을 의미하는가?</p>
+            <span class="quiz-toggle" onclick="toggleQuiz(this)">▶ 정답 보기</span>
+            <div class="quiz-a">앞(5433): Host(Windows) 포트. 뒤(5432): Container 내부 포트. localhost:5433으로 접속하면 컨테이너의 5432 포트로 전달됨. 포트 충돌 시 앞의 Host 포트를 다른 번호로 변경.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== SUMMARY ========== -->
+      <section id="summary" class="mb-5">
+        <h2 class="section-header" style="border-color: #6c757d; color: #6c757d; background: #f1f3f5;">📌 시험 직전 최종 체크리스트</h2>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card border-primary">
+              <div class="card-header bg-primary text-white fw-bold">데이터베이스 기초</div>
+              <div class="card-body">
+                <ul class="checklist">
+                  <li>ACID 4가지 속성 암기</li>
+                  <li>기본키 조건: 유일 + NOT NULL</li>
+                  <li>인덱스 장점: 조회 빠름 / 단점: 쓰기 느림</li>
+                  <li>B-Tree 인덱스 구조 이해</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card border-success">
+              <div class="card-header bg-success text-white fw-bold">SQL</div>
+              <div class="card-body">
+                <ul class="checklist">
+                  <li>SQL 실행 순서: FROM→WHERE→GROUP BY→HAVING→SELECT→ORDER BY</li>
+                  <li>INNER JOIN (교집합) vs LEFT JOIN (왼쪽 전체)</li>
+                  <li>ON DELETE CASCADE 동작 방식</li>
+                  <li>서브쿼리 작동 원리</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card border-danger">
+              <div class="card-header bg-danger text-white fw-bold">JPA</div>
+              <div class="card-body">
+                <ul class="checklist">
+                  <li>@Entity, @Id, @Column, @GeneratedValue 역할</li>
+                  <li>영속성 컨텍스트 = 1차 캐시</li>
+                  <li>변경 감지(Dirty Checking) = UPDATE 자동 실행</li>
+                  <li>LAZY vs EAGER 로딩</li>
+                  <li>ddl-auto: create/update/validate/none</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card" style="border-color: var(--section4);">
+              <div class="card-header text-white fw-bold" style="background: var(--section4);">Docker</div>
+              <div class="card-body">
+                <ul class="checklist">
+                  <li>이미지 = 붕어빵 틀 (읽기 전용)</li>
+                  <li>컨테이너 = 붕어빵 (실행 인스턴스)</li>
+                  <li>docker run 옵션: -it, -d, --name, -p</li>
+                  <li>-p 호스트포트:컨테이너포트</li>
+                  <li>docker exec -it [이름] bash — 접속</li>
+                  <li>listen_addresses = '*' — 외부 접속 허용</li>
+                  <li>docker commit — 컨테이너 → 이미지</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="alert alert-primary mt-4 text-center" style="font-size: 1.1rem;">
+          💪 <strong>3/18 시험 파이팅!</strong> 개념을 이해하면 외우는 게 아니라 흐름이 자연스럽게 연결됩니다!
+        </div>
+      </section>
+
+    </div><!-- /col -->
+  </div><!-- /row -->
+</div><!-- /container -->
+
+<!-- Back to top -->
+<button id="backTop" class="btn btn-primary" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  hljs.highlightAll();
+
+  // Quiz toggle
+  function toggleQuiz(el) {
+    const ans = el.nextElementSibling;
+    if (ans.style.display === 'block') {
+      ans.style.display = 'none';
+      el.textContent = '▶ 정답 보기';
+    } else {
+      ans.style.display = 'block';
+      el.textContent = '▼ 정답 숨기기';
+    }
+  }
+
+  // Copy code
+  function copyCode(btn) {
+    const code = btn.nextElementSibling.innerText;
+    navigator.clipboard.writeText(code).then(() => {
+      btn.textContent = '✓ 복사됨';
+      setTimeout(() => btn.textContent = '복사', 1500);
+    });
+  }
+
+  // Read progress
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.body.scrollHeight - window.innerHeight;
+    const pct = (scrollTop / docHeight) * 100;
+    document.getElementById('readProgress').style.width = pct + '%';
+    document.getElementById('backTop').style.display = scrollTop > 400 ? 'block' : 'none';
+  });
+</script>
+</body>
+</html>

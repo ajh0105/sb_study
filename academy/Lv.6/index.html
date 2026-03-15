@@ -1,0 +1,207 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spring Boot 3 Master Class - Lv.6</title>
+  <style>
+    :root { --bg:#f5f7fb; --paper:#fff; --text:#1f2937; --sub:#4b5563; --line:#d8e1ee; --primary:#0f766e; --primary-soft:#e6fffa; --code-bg:#0f172a; --code-text:#e2e8f0; --warn:#b45309; --warn-soft:#fff7ed; --shadow:0 10px 24px rgba(2,6,23,.08); }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Pretendard","Noto Sans KR",sans-serif; color:var(--text); background:radial-gradient(circle at 0% 0%,#dbeafe 0,transparent 32%),radial-gradient(circle at 100% 0%,#ffedd5 0,transparent 26%),var(--bg); line-height:1.72; }
+    .wrap { max-width:1120px; margin:0 auto; padding:24px 18px 60px; }
+    .hero { border-radius:22px; padding:26px; background:linear-gradient(120deg,#0f766e,#155e75); color:#f8fafc; box-shadow:var(--shadow); }
+    .chip { display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.14); margin:0 6px 6px 0; font-size:.82rem; }
+    .hero h1 { margin:4px 0 6px; font-size:1.85rem; }
+    .hero p { margin:6px 0; opacity:.95; }
+    section { margin-top:16px; border:1px solid var(--line); background:var(--paper); border-radius:16px; box-shadow:var(--shadow); padding:20px; }
+    h2 { margin:0 0 10px; font-size:1.26rem; border-left:5px solid var(--primary); padding-left:10px; }
+    .step { margin-top:10px; border:1px solid var(--line); border-radius:12px; padding:12px; background:#fcfdff; }
+    .pill { display:inline-block; border-radius:8px; padding:2px 8px; font-size:.8rem; font-weight:700; margin-bottom:6px; }
+    .theory { background:var(--primary-soft); color:#0f766e; } .code { background:#e0e7ff; color:#3730a3; } .grammar { background:#eef2ff; color:#312e81; } .check { background:var(--warn-soft); color:var(--warn); }
+    pre { margin:8px 0 0; background:var(--code-bg); color:var(--code-text); border-radius:10px; padding:12px; overflow-x:auto; font-size:.84rem; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Courier New",monospace; font-size:.9em; }
+    ul,ol { padding-left:20px; }
+    .flow { background:#0b1325; color:#d5f8f3; border-radius:10px; padding:12px; font-size:.84rem; overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; margin-top:8px; font-size:.92rem; }
+    th,td { border:1px solid var(--line); padding:8px; text-align:left; vertical-align:top; }
+    th { background:#f0f9ff; }
+    .note { margin-top:8px; border-left:4px solid #f97316; background:#fff7ed; border-radius:8px; padding:10px; color:#7c2d12; }
+    .footer { margin-top:16px; text-align:center; color:var(--sub); font-size:.9rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <span class="chip">Lv.6</span>
+      <span class="chip">Part 1 (Thymeleaf)</span>
+      <span class="chip">운영원칙 적용</span>
+      <h1>DTO 심화: 검증 전략과 매핑 안정성</h1>
+      <p>이번 레벨은 <strong>DTO 심화</strong> 한 주제만 깊게 다룹니다.</p>
+      <p>기초 순서 고정: Entity -> Repository -> DTO -> Config -> Service -> Controller</p>
+    </header>
+
+    <section>
+      <h2>0) 이전 레벨 복습 (Lv.5)</h2>
+      <div class="step"><span class="pill theory">복습 핵심</span>
+        <ul>
+          <li>Lv.5에서 Request DTO / Response DTO 분리 이유를 학습했습니다.</li>
+          <li><code>from()</code>, <code>toEntity()</code> 변환 패턴의 기본을 익혔습니다.</li>
+        </ul>
+      </div>
+      <div class="step"><span class="pill theory">이번 레벨 연결</span>
+        <div class="flow"><code>[DTO 기초]
+   -> [DTO 심화]
+   -> [검증 규칙 확장 + 중첩 DTO + 매핑 실수 방지]
+
+이번 목표는 "DTO를 단순 클래스"가 아니라
+"규칙을 품은 계약서"로 설계하는 것입니다.
+</code></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>1) DTO 심화 핵심 이론</h2>
+      <div class="step"><span class="pill theory">Deep Explaining</span>
+        <p>DTO 심화의 핵심은 3가지입니다. (1) 상황별 검증 규칙 분리, (2) 중첩 객체 검증, (3) 매핑 일관성. 이 3개가 안 잡히면 프로젝트가 커질수록 입력 버그가 폭증합니다.</p>
+      </div>
+      <div class="step"><span class="pill grammar">핵심 포인트</span>
+        <ul>
+          <li>회원 "생성"과 "수정"은 필요한 필드가 다르므로 검증 그룹을 분리합니다.</li>
+          <li>중첩 DTO(예: 주소 객체)는 <code>@Valid</code>를 붙여야 내부 필드까지 검증됩니다.</li>
+          <li>응답 DTO는 화면/API가 필요한 정보만 제공해 결합도를 낮춥니다.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>2) 코드: DTO 심화 (라인별 주석)</h2>
+      <div class="step"><span class="pill code">검증 그룹 + 중첩 DTO</span>
+<pre><code>package com.example.lv6.dto; // DTO 패키지
+
+import jakarta.validation.Valid; // 중첩 객체 검증을 위해 필요
+import jakarta.validation.constraints.Email; // 이메일 형식 검증
+import jakarta.validation.constraints.NotBlank; // 공백 검증
+import jakarta.validation.constraints.Size; // 길이 검증
+import lombok.Getter;
+import lombok.Setter;
+
+public class ValidationGroups { // 검증 상황(생성/수정) 그룹 정의용 클래스
+    public interface Create {} // 생성 시 규칙
+    public interface Update {} // 수정 시 규칙
+}
+
+@Getter
+@Setter
+public class AddressDto { // 중첩 DTO 예시
+    @NotBlank(message = "도시는 필수입니다.")
+    private String city; // 도시
+
+    @NotBlank(message = "상세 주소는 필수입니다.")
+    private String detail; // 상세 주소
+}
+
+@Getter
+@Setter
+public class MemberRequestDto { // 생성/수정 공용 DTO
+
+    @NotBlank(message = "이메일은 필수입니다.", groups = ValidationGroups.Create.class) // 생성 시 필수
+    @Email(message = "이메일 형식이 아닙니다.", groups = {ValidationGroups.Create.class, ValidationGroups.Update.class})
+    private String email; // 이메일
+
+    @NotBlank(message = "비밀번호는 필수입니다.", groups = ValidationGroups.Create.class) // 생성 시만 필수
+    @Size(min = 8, message = "비밀번호는 8자 이상", groups = ValidationGroups.Create.class)
+    private String password; // 비밀번호
+
+    @Valid // AddressDto 내부 필드(city/detail)까지 검증 실행
+    private AddressDto address; // 중첩 DTO
+}
+</code></pre>
+      </div>
+
+      <div class="step"><span class="pill code">응답 DTO + 매핑 메서드</span>
+<pre><code>package com.example.lv6.dto;
+
+import com.example.lv6.entity.Member;
+
+public record MemberDetailResponse(
+    Long id,
+    String email,
+    String city,
+    String detail
+) {
+    public static MemberDetailResponse from(Member member) { // Entity -> DTO 변환
+        return new MemberDetailResponse(
+            member.getId(),
+            member.getEmail(),
+            member.getCity(), // 예시: 엔티티에 city/detail 필드가 있다고 가정
+            member.getDetail()
+        );
+    }
+}
+</code></pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>3) Granular Analysis: 메서드 한 줄 분해</h2>
+      <div class="step"><span class="pill grammar">public static MemberDetailResponse from(Member member)</span>
+        <table>
+          <thead><tr><th>부품</th><th>문법적 의미</th><th>왜 필요한가?</th></tr></thead>
+          <tbody>
+            <tr><td><code>public</code></td><td>접근 제어자</td><td>서비스/컨트롤러 어디서든 호출 가능하게</td></tr>
+            <tr><td><code>static</code></td><td>정적 메서드</td><td>객체 생성 없이 변환 가능</td></tr>
+            <tr><td><code>MemberDetailResponse</code></td><td>반환형</td><td>응답 모델을 고정해 API 계약 안정화</td></tr>
+            <tr><td><code>from</code></td><td>메서드명</td><td>"무엇에서 무엇으로" 변환하는지 명확히 표현</td></tr>
+            <tr><td><code>(Member member)</code></td><td>파라미터</td><td>변환 원본 엔티티 전달</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>4) DTO 심화 실수 포인트와 해결</h2>
+      <div class="step"><span class="pill grammar">자주 하는 실수</span>
+        <ul>
+          <li>실수 1: 생성/수정 검증 규칙을 같은 DTO에 무작정 섞음 -> 그룹 검증으로 분리</li>
+          <li>실수 2: 중첩 DTO에 <code>@Valid</code> 누락 -> 내부 필드 검증이 동작하지 않음</li>
+          <li>실수 3: Entity를 그대로 응답 -> 보안/결합도 문제</li>
+        </ul>
+      </div>
+      <div class="step"><span class="pill grammar">해결 전략</span>
+        <ul>
+          <li>규칙이 다르면 DTO를 분리하거나 Validation Group을 사용</li>
+          <li>중첩 객체는 항상 <code>@Valid</code> 확인</li>
+          <li>응답은 Response DTO + <code>from()</code> 매핑 고정</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>5) 어노테이션 사전 (DTO 심화 편)</h2>
+      <div class="step"><span class="pill grammar">동작 원리 + 사용 시점</span>
+        <ul>
+          <li><code>@Valid</code>: 중첩 객체 검증까지 확장.</li>
+          <li><code>groups = ...</code>: 같은 DTO에서도 상황별 검증 규칙 분리.</li>
+          <li><code>@NotBlank</code>, <code>@Email</code>, <code>@Size</code>: 입력 품질 보장 기본 세트.</li>
+          <li><code>record</code>: 불변 응답 DTO 작성에 유리.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>6) Lv.6 실습 체크리스트</h2>
+      <div class="step"><span class="pill check">완료 기준</span>
+        <ol>
+          <li>검증 그룹(Create/Update) 개념을 설명할 수 있다.</li>
+          <li>중첩 DTO 검증에서 <code>@Valid</code>가 왜 필요한지 설명할 수 있다.</li>
+          <li><code>from()</code> 매핑 메서드로 응답 구조를 통일할 수 있다.</li>
+          <li>DTO 심화 규칙을 팀 코딩 규칙으로 문서화할 수 있다.</li>
+        </ol>
+      </div>
+      <div class="note">다음 Lv.7도 같은 방식으로 시작하며, Config 심화(보안/공통 설정)로 이어집니다.</div>
+    </section>
+
+    <p class="footer">Spring Boot 3 Master Class - Lv.6 (DTO 심화)</p>
+  </div>
+</body>
+</html>

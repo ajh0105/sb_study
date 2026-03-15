@@ -1,0 +1,398 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spring Boot 3 Master Class - Lv.1</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --paper: #ffffff;
+      --text: #1f2937;
+      --sub: #4b5563;
+      --line: #d8e1ee;
+      --primary: #0f766e;
+      --primary-soft: #e6fffa;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+      --warn: #b45309;
+      --warn-soft: #fff7ed;
+      --shadow: 0 10px 24px rgba(2, 6, 23, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Noto Sans KR", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 0% 0%, #dbeafe 0, transparent 32%),
+        radial-gradient(circle at 100% 0%, #ffedd5 0, transparent 26%),
+        var(--bg);
+      line-height: 1.72;
+    }
+
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 24px 18px 60px; }
+
+    .hero {
+      border-radius: 22px;
+      padding: 26px;
+      background: linear-gradient(120deg, #0f766e, #155e75);
+      color: #f8fafc;
+      box-shadow: var(--shadow);
+    }
+
+    .chip {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.14);
+      margin: 0 6px 6px 0;
+      font-size: 0.82rem;
+    }
+
+    .hero h1 { margin: 4px 0 6px; font-size: 1.85rem; }
+    .hero p { margin: 6px 0; opacity: 0.95; }
+
+    section {
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    h2 { margin: 0 0 10px; font-size: 1.26rem; border-left: 5px solid var(--primary); padding-left: 10px; }
+    h3 { margin: 16px 0 8px; font-size: 1.04rem; }
+
+    .step {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fcfdff;
+    }
+
+    .pill {
+      display: inline-block;
+      border-radius: 8px;
+      padding: 2px 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .theory { background: var(--primary-soft); color: #0f766e; }
+    .code { background: #e0e7ff; color: #3730a3; }
+    .grammar { background: #eef2ff; color: #312e81; }
+    .check { background: var(--warn-soft); color: var(--warn); }
+
+    pre {
+      margin: 8px 0 0;
+      background: var(--code-bg);
+      color: var(--code-text);
+      border-radius: 10px;
+      padding: 12px;
+      overflow-x: auto;
+      font-size: 0.84rem;
+    }
+
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 0.9em; }
+    ul, ol { padding-left: 20px; }
+
+    .flow {
+      background: #0b1325;
+      color: #d5f8f3;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 0.84rem;
+      overflow-x: auto;
+    }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--line); padding: 8px; text-align: left; vertical-align: top; }
+    th { background: #f0f9ff; }
+
+    .note {
+      margin-top: 8px;
+      border-left: 4px solid #f97316;
+      background: #fff7ed;
+      border-radius: 8px;
+      padding: 10px;
+      color: #7c2d12;
+    }
+
+    .footer { margin-top: 16px; text-align: center; color: var(--sub); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <span class="chip">Lv.1</span>
+      <span class="chip">Part 1: Thymeleaf 기반</span>
+      <span class="chip">한 주제 깊게 학습</span>
+      <h1>환경 설정 및 Member 기초 레이아웃</h1>
+      <p>이번 레벨 초점: <strong>환경 설정 + Member 엔티티 설계 + Controller 문법 분해</strong></p>
+      <p>학습 철학: "무엇을 쓰는가"보다 "왜 여기서 그 키워드를 쓰는가"</p>
+    </header>
+
+    <section>
+      <h2>0) 시작 전 안내 (로드맵 고정 규칙)</h2>
+      <div class="step">
+        <span class="pill theory">레벨 1~10 진행 순서</span>
+        <div class="flow"><code>Entity -> Repository -> DTO -> Config -> Service -> Controller
+
+주의:
+- 한 레벨에 6개를 다 넣지 않습니다.
+- 레벨마다 1~2개 핵심 주제를 깊게 파고듭니다.
+- Lv.1은 Entity 중심 기초 레이아웃을 다룹니다.
+</code></div>
+      </div>
+      <div class="note">앞으로 Lv.2부터는 시작 섹션에 항상 "이전 레벨 복습" 블록을 고정으로 넣어 이어서 학습합니다.</div>
+    </section>
+
+    <section>
+      <h2>1) 환경 설정: application.yml "라인별 왜?"</h2>
+
+      <div class="step">
+        <span class="pill code">코드 (한 줄마다 이유 주석)</span>
+        <pre><code>spring: # 스프링 설정의 최상위 묶음입니다. 여기 아래에 DB/JPA/템플릿 설정을 넣습니다.
+  datasource: # DB 연결 정보 묶음입니다.
+    url: jdbc:postgresql://localhost:5432/spring_lv1 # jdbc:postgresql(프로토콜)://localhost(내 컴퓨터):5432(DB 기본 포트)/spring_lv1(DB 이름)
+    username: postgres # DB 계정명입니다. DB 문을 열 때 필요한 아이디입니다.
+    password: 1234 # DB 비밀번호입니다. 학습 단계에서는 단순값, 실무는 환경변수 사용.
+    driver-class-name: org.postgresql.Driver # 자바가 PostgreSQL과 대화하기 위한 드라이버 클래스입니다.
+
+  jpa: # 자바 객체(Entity)와 DB 테이블을 연결하는 JPA 설정입니다.
+    hibernate: # JPA 구현체(Hibernate) 상세 설정 구역입니다.
+      ddl-auto: update # Entity가 바뀌면 테이블을 업데이트합니다. 학습 속도를 높여줍니다.
+    show-sql: true # 실제 실행 SQL을 콘솔에 보여줍니다. 내부 동작 학습에 필수입니다.
+    properties: # 추가 하이버네이트 옵션 묶음입니다.
+      hibernate:
+        format_sql: true # SQL을 예쁘게 줄바꿈해서 출력합니다. 초보자 가독성 향상.
+
+  thymeleaf: # HTML 템플릿 엔진 설정입니다.
+    cache: false # 화면 파일 수정 즉시 반영. 학습 중에는 캐시 OFF가 편합니다.
+
+server: # 내장 톰캣 서버 설정입니다.
+  port: 8080 # 브라우저 접속 포트(예: http://localhost:8080)
+</code></pre>
+      </div>
+
+      <div class="step">
+        <span class="pill grammar">문법 해설 (아주 기초)</span>
+        <ul>
+          <li>YAML은 <code>키: 값</code> 구조입니다. 들여쓰기 깊이가 같으면 같은 레벨입니다.</li>
+          <li><code>localhost</code>는 "내 컴퓨터 자신"을 뜻합니다.</li>
+          <li><code>5432</code>는 PostgreSQL 기본 포트입니다. 바뀌면 접속 주소도 같이 바꿔야 합니다.</li>
+          <li><code>ddl-auto: update</code>는 편하지만, 운영에서는 의도치 않은 변경 위험이 있어 주의가 필요합니다.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>2) 데이터 설계: Member Entity를 왜 이렇게 만드는가?</h2>
+
+      <div class="step">
+        <span class="pill theory">필드 선정 사고방식</span>
+        <ul>
+          <li><code>id</code>: 사람 이름은 중복될 수 있으므로 시스템 내부 식별자는 숫자 PK가 안전합니다.</li>
+          <li><code>email</code>: 로그인 아이디 역할. 절대 중복되면 안 됩니다.</li>
+          <li><code>password</code>: 인증 핵심. 저장은 필요하지만 평문 저장은 금지입니다.</li>
+        </ul>
+      </div>
+
+      <div class="step">
+        <span class="pill code">Member 코드 (라인별 이유 주석)</span>
+        <pre><code>package com.example.lv1.entity; // 이 클래스가 entity 폴더에 있음을 알려줍니다.
+
+import jakarta.persistence.Column; // 컬럼 옵션(nullable, unique, length)을 쓰기 위해 필요합니다.
+import jakarta.persistence.Entity; // 이 클래스가 DB 테이블로 매핑된다는 표시입니다.
+import jakarta.persistence.GeneratedValue; // id 자동 생성 기능을 쓰기 위해 필요합니다.
+import jakarta.persistence.GenerationType; // 자동 생성 방식 종류를 지정하기 위해 필요합니다.
+import jakarta.persistence.Id; // 기본키 필드 표시를 위해 필요합니다.
+import lombok.Builder; // 빌더 패턴 사용을 위해 필요합니다.
+import lombok.Getter; // getter 자동 생성을 위해 필요합니다.
+import lombok.NoArgsConstructor; // 기본 생성자 자동 생성을 위해 필요합니다.
+
+@Entity // JPA가 이 클래스를 테이블로 관리하게 만듭니다.
+@Getter // private 필드를 외부에서 읽을 수 있도록 getter를 자동 생성합니다.
+@NoArgsConstructor // JPA 내부 동작 시 기본 생성자가 필요해서 붙입니다.
+public class Member { // Member 엔티티 클래스 선언
+
+    @Id // PK(기본키) 지정
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // DB auto increment 전략 사용
+    private Long id; // 회원 고유 번호. Long은 큰 숫자 범위와 null 상태 표현에 유리
+
+    @Column(nullable = false, unique = true, length = 100) // null 금지 + 중복 금지 + 최대 100자
+    private String email; // 로그인 아이디. unique를 반드시 주는 대표 필드
+
+    @Column(nullable = false, length = 255) // null 금지 + 최대 255자
+    private String password; // 암호화된 비밀번호 저장 칸
+
+    @Builder // Member.builder() 형태 생성 문법 제공
+    public Member(String email, String password) { // 생성 시 반드시 필요한 필드만 받도록 설계
+        this.email = email; // 전달받은 email을 현재 객체 필드에 대입
+        this.password = password; // 전달받은 password를 현재 객체 필드에 대입
+    }
+}
+</code></pre>
+      </div>
+
+      <div class="step">
+        <span class="pill grammar">Java 기초 연결 (private, Long, String)</span>
+        <table>
+          <thead>
+            <tr>
+              <th>요소</th>
+              <th>뜻</th>
+              <th>왜 여기서 선택했나?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>private</code></td>
+              <td>외부 직접 접근 금지</td>
+              <td>필드 보호. Service 규칙을 거치게 만들기 위해</td>
+            </tr>
+            <tr>
+              <td><code>Long</code></td>
+              <td>큰 정수 객체형</td>
+              <td>PK 범위가 넓고, 저장 전 null 상태 표현 가능</td>
+            </tr>
+            <tr>
+              <td><code>String</code></td>
+              <td>문자열 타입</td>
+              <td>email/password는 문자 데이터이기 때문</td>
+            </tr>
+            <tr>
+              <td><code>this</code></td>
+              <td>현재 객체 자신</td>
+              <td>매개변수명과 필드명을 명확히 구분</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="step">
+        <span class="pill grammar">Builder 패턴 상세 분석</span>
+        <pre><code>Member member = Member.builder() // "객체 만들기 시작" 신호
+    .email("student@test.com") // 어떤 필드에 어떤 값을 넣는지 글자 그대로 보임
+    .password("암호화된비밀번호") // 생성자 순서 실수 방지
+    .build(); // 최종 객체 생성
+</code></pre>
+        <ul>
+          <li>장점 1: 가독성. 어떤 값이 어떤 필드로 가는지 코드가 말해줍니다.</li>
+          <li>장점 2: 순서 실수 방지. <code>new Member(a, b)</code>보다 안전합니다.</li>
+          <li>장점 3: 필드가 늘어나도 읽기/수정이 쉽습니다.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>3) Controller 기초: public String joinForm(Model model) 해부</h2>
+
+      <div class="step">
+        <span class="pill code">코드 (라인별 주석)</span>
+        <pre><code>package com.example.lv1.controller; // 컨트롤러 패키지
+
+import com.example.lv1.dto.MemberJoinRequest; // 화면 폼 데이터 바인딩 DTO
+import org.springframework.stereotype.Controller; // MVC 컨트롤러 선언용
+import org.springframework.ui.Model; // 컨트롤러 -> 뷰 데이터 전달 상자
+import org.springframework.web.bind.annotation.GetMapping; // GET 요청 매핑
+import org.springframework.web.bind.annotation.RequestMapping; // 공통 경로 매핑
+
+@Controller // 이 클래스가 HTML 화면을 반환하는 컨트롤러임을 뜻합니다.
+@RequestMapping("/members") // 클래스 내부 메서드 URL 공통 접두사
+public class MemberController {
+
+    @GetMapping("/join") // GET /members/join 요청을 이 메서드와 연결
+    public String joinForm(Model model) { // public: 스프링이 호출 가능, String: 반환값은 뷰 이름, Model: 화면으로 보낼 데이터 통로
+        model.addAttribute("req", new MemberJoinRequest()); // req라는 이름으로 빈 DTO 전달
+        return "member/join"; // templates/member/join.html 렌더링
+    }
+}
+</code></pre>
+      </div>
+
+      <div class="step">
+        <span class="pill grammar">문법 부품 분해표</span>
+        <table>
+          <thead>
+            <tr>
+              <th>부품</th>
+              <th>문법 종류</th>
+              <th>왜 필요한가?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>public</code></td>
+              <td>접근 제어자</td>
+              <td>스프링 프레임워크가 메서드를 호출하려면 공개되어야 함</td>
+            </tr>
+            <tr>
+              <td><code>String</code></td>
+              <td>반환형</td>
+              <td>어떤 HTML 템플릿을 보여줄지 뷰 이름으로 반환</td>
+            </tr>
+            <tr>
+              <td><code>joinForm</code></td>
+              <td>메서드 이름</td>
+              <td>역할(회원가입 폼 화면 제공)을 이름에서 바로 알 수 있게</td>
+            </tr>
+            <tr>
+              <td><code>Model model</code></td>
+              <td>파라미터</td>
+              <td>컨트롤러에서 뷰로 데이터를 넘기기 위한 운반 상자</td>
+            </tr>
+            <tr>
+              <td><code>model.addAttribute</code></td>
+              <td>메서드 호출</td>
+              <td>템플릿이 사용할 데이터를 이름(req)과 함께 등록</td>
+            </tr>
+            <tr>
+              <td><code>return "member/join"</code></td>
+              <td>반환문</td>
+              <td>최종적으로 어떤 화면 파일을 보여줄지 결정</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>4) 어노테이션 사전 (Lv.1 사용분)</h2>
+      <div class="step">
+        <span class="pill grammar">동작 원리 + 사용 시점</span>
+        <ul>
+          <li><code>@Entity</code>: 클래스가 DB 테이블 매핑 대상임을 선언. 데이터 설계 단계에서 사용.</li>
+          <li><code>@Column</code>: 컬럼 제약(필수/중복/길이) 지정. 무결성 보호를 위해 사용.</li>
+          <li><code>@Id</code>, <code>@GeneratedValue</code>: PK 정의 및 생성 전략 설정.</li>
+          <li><code>@Getter</code>, <code>@NoArgsConstructor</code>, <code>@Builder</code>: Lombok으로 반복 코드 제거 + 객체 생성 가독성 향상.</li>
+          <li><code>@Controller</code>, <code>@RequestMapping</code>, <code>@GetMapping</code>: URL 요청을 화면 반환 메서드와 연결.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>5) Lv.1 완료 체크</h2>
+      <div class="step">
+        <span class="pill check">스스로 설명 가능한지 확인</span>
+        <ol>
+          <li><code>application.yml</code> 각 줄의 존재 이유를 설명할 수 있다.</li>
+          <li>Member 필드(id/email/password) 선정 이유를 말할 수 있다.</li>
+          <li><code>@Column(nullable, unique, length)</code> 옵션 차이를 설명할 수 있다.</li>
+          <li><code>public String joinForm(Model model)</code>를 문법 부품으로 분해해 설명할 수 있다.</li>
+        </ol>
+      </div>
+      <div class="note">다음 Lv.2는 "Repository"를 한 주제로 깊게 들어갑니다. (JpaRepository 상속, Optional/List 중심)</div>
+    </section>
+
+    <p class="footer">Spring Boot 3 Master Class - Lv.1 (환경 설정 및 Member 기초 레이아웃)</p>
+  </div>
+</body>
+</html>

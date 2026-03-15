@@ -1,0 +1,222 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spring Boot 3 Master Class - Lv.8</title>
+  <style>
+    :root { --bg:#f5f7fb; --paper:#fff; --text:#1f2937; --sub:#4b5563; --line:#d8e1ee; --primary:#0f766e; --primary-soft:#e6fffa; --code-bg:#0f172a; --code-text:#e2e8f0; --warn:#b45309; --warn-soft:#fff7ed; --shadow:0 10px 24px rgba(2,6,23,.08); }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Pretendard","Noto Sans KR",sans-serif; color:var(--text); background:radial-gradient(circle at 0% 0%,#dbeafe 0,transparent 32%),radial-gradient(circle at 100% 0%,#ffedd5 0,transparent 26%),var(--bg); line-height:1.74; }
+    .wrap { max-width:1120px; margin:0 auto; padding:24px 18px 60px; }
+    .hero { border-radius:22px; padding:26px; background:linear-gradient(120deg,#0f766e,#155e75); color:#f8fafc; box-shadow:var(--shadow); }
+    .chip { display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.14); margin:0 6px 6px 0; font-size:.82rem; }
+    .hero h1 { margin:4px 0 6px; font-size:1.85rem; }
+    .hero p { margin:6px 0; opacity:.95; }
+    section { margin-top:16px; border:1px solid var(--line); background:var(--paper); border-radius:16px; box-shadow:var(--shadow); padding:20px; }
+    h2 { margin:0 0 10px; font-size:1.26rem; border-left:5px solid var(--primary); padding-left:10px; }
+    h3 { margin:16px 0 8px; font-size:1.04rem; }
+    .step { margin-top:10px; border:1px solid var(--line); border-radius:12px; padding:12px; background:#fcfdff; }
+    .pill { display:inline-block; border-radius:8px; padding:2px 8px; font-size:.8rem; font-weight:700; margin-bottom:6px; }
+    .theory { background:var(--primary-soft); color:#0f766e; } .code { background:#e0e7ff; color:#3730a3; } .grammar { background:#eef2ff; color:#312e81; } .check { background:var(--warn-soft); color:var(--warn); }
+    pre { margin:8px 0 0; background:var(--code-bg); color:var(--code-text); border-radius:10px; padding:12px; overflow-x:auto; font-size:.84rem; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Courier New",monospace; font-size:.9em; }
+    ul,ol { padding-left:20px; }
+    .flow { background:#0b1325; color:#d5f8f3; border-radius:10px; padding:12px; font-size:.84rem; overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; margin-top:8px; font-size:.92rem; }
+    th,td { border:1px solid var(--line); padding:8px; text-align:left; vertical-align:top; }
+    th { background:#f0f9ff; }
+    .note { margin-top:8px; border-left:4px solid #f97316; background:#fff7ed; border-radius:8px; padding:10px; color:#7c2d12; }
+    .footer { margin-top:16px; text-align:center; color:var(--sub); font-size:.9rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <span class="chip">Lv.8</span>
+      <span class="chip">Part 1 (Thymeleaf)</span>
+      <span class="chip">운영원칙 적용</span>
+      <h1>Service 기초 + 심화: 비즈니스 로직을 설계하는 방법</h1>
+      <p>이번 레벨은 <strong>Service</strong>를 가장 깊게 다룹니다.</p>
+      <p>기초 순서 고정: Entity -> Repository -> DTO -> Config -> Service -> Controller</p>
+    </header>
+
+    <section>
+      <h2>0) 이전 레벨 복습 (Lv.7)</h2>
+      <div class="step"><span class="pill theory">복습 핵심</span>
+        <ul>
+          <li>Lv.7에서 Config를 통해 PasswordEncoder, 설정 바인딩, MVC 확장을 준비했습니다.</li>
+          <li>즉, Service가 사용할 도구(Bean)는 준비된 상태입니다.</li>
+        </ul>
+      </div>
+      <div class="step"><span class="pill theory">이번 레벨 연결</span>
+        <div class="flow"><code>[Controller 요청 DTO]
+   -> [Service: 규칙 판단/검증/변환/트랜잭션]
+   -> [Repository: DB 질의/저장]
+   -> [Service: Entity를 DTO로 가공]
+   -> [Controller 응답]
+</code></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>1) Service가 왜 어려운가? 그리고 왜 중요한가?</h2>
+      <div class="step"><span class="pill theory">Deep Explaining</span>
+        <p>Service는 단순 저장 계층이 아닙니다. "규칙을 적용하는 판단 계층"입니다. 무엇을 저장할지, 무엇을 거절할지, 어떤 예외를 던질지, 어떤 형식으로 반환할지 모두 Service에서 결정합니다. 그래서 초보자가 가장 어려워합니다.</p>
+      </div>
+      <div class="step"><span class="pill grammar">Service의 5가지 책임</span>
+        <ol>
+          <li>검증 보강: DTO 검증(@Valid) 이후 도메인 규칙 검증(예: 중복 이메일)</li>
+          <li>변환: DTO -> Entity, Entity -> DTO</li>
+          <li>레포지토리 오케스트레이션: 어떤 Repository 메서드를 어떤 순서로 호출할지 결정</li>
+          <li>트랜잭션 경계: 성공/실패 시 데이터 일관성 보장</li>
+          <li>예외 메시지 표준화: 사용자/개발자 관점 오류 전달</li>
+        </ol>
+      </div>
+    </section>
+
+    <section>
+      <h2>2) Service 구현 코드 (라인별 + 레포지토리 연결 이유)</h2>
+      <div class="step"><span class="pill code">MemberService 예시</span>
+<pre><code>package com.example.lv8.service; // 서비스 패키지
+
+import com.example.lv8.dto.MemberJoinRequest; // 입력 DTO
+import com.example.lv8.dto.MemberResponse; // 출력 DTO
+import com.example.lv8.entity.Member; // 도메인 엔티티
+import com.example.lv8.repository.MemberRepository; // 회원 저장소
+import lombok.RequiredArgsConstructor; // final 필드 생성자 자동 주입
+import org.springframework.security.crypto.password.PasswordEncoder; // 비밀번호 암호화 도구
+import org.springframework.stereotype.Service; // 서비스 계층 선언
+import org.springframework.transaction.annotation.Transactional; // 트랜잭션 경계
+
+import java.util.List; // 다건 응답용
+
+@Service // 스프링이 서비스 빈으로 관리
+@RequiredArgsConstructor // final 필드(memberRepository, passwordEncoder) 생성자 주입
+@Transactional // 기본적으로 쓰기 트랜잭션. 예외 발생 시 롤백
+public class MemberService {
+
+    private final MemberRepository memberRepository; // DB 접근 창구
+    private final PasswordEncoder passwordEncoder; // Config에서 등록한 Bean 주입
+
+    public Long join(MemberJoinRequest req) { // 회원가입 유즈케이스
+
+        // 1) 왜 existsByEmail? -> 전체 회원을 가져오지 않고 존재 여부만 확인해 효율적
+        if (memberRepository.existsByEmail(req.getEmail())) {
+            throw new IllegalArgumentException("이미 사용중인 이메일입니다.");
+        }
+
+        // 2) 왜 DTO -> Entity 변환? -> DB 모델과 요청 모델 분리
+        Member member = req.toEntity(passwordEncoder); // 내부에서 password encode 수행
+
+        // 3) 왜 save 반환값을 받나? -> 저장 후 생성된 id 사용 가능
+        Member saved = memberRepository.save(member);
+
+        return saved.getId(); // 다음 화면 이동/응답에 필요한 식별자 반환
+    }
+
+    @Transactional(readOnly = true) // 조회 전용: 변경 감지 비용 감소
+    public MemberResponse findOneByEmail(String email) {
+
+        // 4) 왜 Optional + orElseThrow? -> null 분기 실수 방지 + 명확한 실패 흐름
+        Member member = memberRepository.findByEmail(email)
+            .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+
+        // 5) 왜 Entity를 직접 반환하지 않나? -> 민감정보 노출 방지
+        return MemberResponse.from(member);
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;MemberResponse&gt; searchByKeyword(String keyword) {
+
+        // 6) 왜 List 조회 메서드? -> 검색은 다건 결과가 자연스러움
+        List&lt;Member&gt; members = memberRepository.findByEmailContaining(keyword);
+
+        // 7) 왜 map 변환? -> Entity 리스트를 응답 DTO 리스트로 변환
+        return members.stream()
+            .map(MemberResponse::from)
+            .toList();
+    }
+}
+</code></pre>
+      </div>
+
+      <div class="step"><span class="pill grammar">레포지토리 메서드를 왜 이렇게 고르는가?</span>
+        <table>
+          <thead><tr><th>Service 요구사항</th><th>사용 Repository 메서드</th><th>선택 이유</th></tr></thead>
+          <tbody>
+            <tr><td>이메일 중복 검사</td><td><code>existsByEmail</code></td><td>존재 여부만 필요하므로 가장 가볍고 빠름</td></tr>
+            <tr><td>회원 단건 조회</td><td><code>findByEmail</code> (Optional)</td><td>없을 수 있으므로 Optional이 안전</td></tr>
+            <tr><td>회원 검색(다건)</td><td><code>findByEmailContaining</code> (List)</td><td>검색 결과는 여러 개 가능</td></tr>
+            <tr><td>신규 회원 저장</td><td><code>save</code></td><td>엔티티 영속화 후 생성 ID 확보 가능</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>3) Service 문법 해부 (Granular Analysis)</h2>
+      <div class="step"><span class="pill grammar">public Long join(MemberJoinRequest req) 분해</span>
+        <table>
+          <thead><tr><th>부품</th><th>문법적 의미</th><th>왜 필요한가?</th></tr></thead>
+          <tbody>
+            <tr><td><code>public</code></td><td>접근 제어자</td><td>Controller가 Service 메서드를 호출할 수 있어야 함</td></tr>
+            <tr><td><code>Long</code></td><td>반환형</td><td>저장 후 생성 ID를 다음 흐름(redirect/응답)에 사용</td></tr>
+            <tr><td><code>join</code></td><td>메서드명</td><td>유즈케이스(회원가입) 의도를 이름으로 명확히 표현</td></tr>
+            <tr><td><code>(MemberJoinRequest req)</code></td><td>파라미터</td><td>Controller가 전달한 입력 DTO를 받음</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="step"><span class="pill grammar">@Transactional vs @Transactional(readOnly=true)</span>
+        <ul>
+          <li><code>@Transactional</code>: 저장/수정/삭제 같은 쓰기 작업에 사용.</li>
+          <li><code>@Transactional(readOnly = true)</code>: 조회 메서드에서 의도 명확화 + 성능 최적화.</li>
+          <li>원칙: 쓰기와 읽기를 메서드 단위로 분리해 명확하게 선언.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>4) Service 실전 사고법 (초보자용 체크 포인트)</h2>
+      <div class="step"><span class="pill grammar">코드 작성 전 4문장 질문</span>
+        <ol>
+          <li>이 메서드의 유즈케이스 이름은 무엇인가?</li>
+          <li>어떤 Repository 메서드를 어떤 순서로 호출해야 하는가?</li>
+          <li>DTO/Entity 변환은 어디서 할 것인가?</li>
+          <li>성공/실패 시 어떤 값을 반환하거나 예외를 던질 것인가?</li>
+        </ol>
+      </div>
+      <div class="note">Service는 "코드 작성"보다 "순서 설계"가 먼저입니다. 순서가 맞으면 코드가 짧아져도 품질이 높습니다.</div>
+    </section>
+
+    <section>
+      <h2>5) 어노테이션/키워드 사전 (Service 편)</h2>
+      <div class="step"><span class="pill grammar">동작 원리 + 사용 시점</span>
+        <ul>
+          <li><code>@Service</code>: 비즈니스 로직 계층 선언.</li>
+          <li><code>@RequiredArgsConstructor</code>: final 의존성 생성자 주입 자동화.</li>
+          <li><code>@Transactional</code>: 데이터 일관성을 보장하는 트랜잭션 경계.</li>
+          <li><code>Optional.orElseThrow</code>: 값 없음 처리의 안전한 표준 패턴.</li>
+          <li><code>stream().map(...).toList()</code>: Entity 리스트를 DTO 리스트로 변환.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>6) Lv.8 실습 체크리스트</h2>
+      <div class="step"><span class="pill check">완료 기준</span>
+        <ol>
+          <li>Service가 왜 가장 중요한 계층인지 설명할 수 있다.</li>
+          <li>Service 메서드마다 어떤 Repository 메서드를 왜 쓰는지 말할 수 있다.</li>
+          <li><code>@Transactional</code>과 <code>readOnly</code> 차이를 설명할 수 있다.</li>
+          <li>DTO/Entity 변환 위치를 팀 규칙으로 고정할 수 있다.</li>
+        </ol>
+      </div>
+      <div class="note">다음 Lv.9도 같은 방식으로 시작하며, Controller 기초+심화(요청/검증/응답 흐름)로 이어집니다.</div>
+    </section>
+
+    <p class="footer">Spring Boot 3 Master Class - Lv.8 (Service 기초 + 심화)</p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,261 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spring Boot 3 Master Class - Lv.2</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --paper: #ffffff;
+      --text: #1f2937;
+      --sub: #4b5563;
+      --line: #d8e1ee;
+      --primary: #0f766e;
+      --primary-soft: #e6fffa;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+      --warn: #b45309;
+      --warn-soft: #fff7ed;
+      --shadow: 0 10px 24px rgba(2, 6, 23, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Noto Sans KR", sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at 0% 0%, #dbeafe 0, transparent 32%), radial-gradient(circle at 100% 0%, #ffedd5 0, transparent 26%), var(--bg);
+      line-height: 1.72;
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 24px 18px 60px; }
+    .hero {
+      border-radius: 22px;
+      padding: 26px;
+      background: linear-gradient(120deg, #0f766e, #155e75);
+      color: #f8fafc;
+      box-shadow: var(--shadow);
+    }
+    .chip {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.14);
+      margin: 0 6px 6px 0;
+      font-size: 0.82rem;
+    }
+    .hero h1 { margin: 4px 0 6px; font-size: 1.85rem; }
+    .hero p { margin: 6px 0; opacity: 0.95; }
+    section {
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+    h2 { margin: 0 0 10px; font-size: 1.26rem; border-left: 5px solid var(--primary); padding-left: 10px; }
+    h3 { margin: 16px 0 8px; font-size: 1.04rem; }
+    .step { margin-top: 10px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: #fcfdff; }
+    .pill { display: inline-block; border-radius: 8px; padding: 2px 8px; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; }
+    .theory { background: var(--primary-soft); color: #0f766e; }
+    .code { background: #e0e7ff; color: #3730a3; }
+    .grammar { background: #eef2ff; color: #312e81; }
+    .check { background: var(--warn-soft); color: var(--warn); }
+    pre { margin: 8px 0 0; background: var(--code-bg); color: var(--code-text); border-radius: 10px; padding: 12px; overflow-x: auto; font-size: 0.84rem; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 0.9em; }
+    ul, ol { padding-left: 20px; }
+    .flow { background: #0b1325; color: #d5f8f3; border-radius: 10px; padding: 12px; font-size: 0.84rem; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--line); padding: 8px; text-align: left; vertical-align: top; }
+    th { background: #f0f9ff; }
+    .note { margin-top: 8px; border-left: 4px solid #f97316; background: #fff7ed; border-radius: 8px; padding: 10px; color: #7c2d12; }
+    .footer { margin-top: 16px; text-align: center; color: var(--sub); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <span class="chip">Lv.2</span>
+      <span class="chip">운영원칙 적용</span>
+      <span class="chip">한 레벨 한 주제 심화</span>
+      <h1>Repository 심화: JPA 상속 + Optional/List</h1>
+      <p>이번 레벨 주제: <strong>Repository만 깊게</strong></p>
+      <p>고정 순서 로드맵(1~10): Entity -> Repository -> DTO -> Config -> Service -> Controller</p>
+    </header>
+
+    <section>
+      <h2>0) 이전 레벨 복습 (Lv.1)</h2>
+      <div class="step">
+        <span class="pill theory">복습 포인트</span>
+        <ul>
+          <li>Lv.1에서 <code>Member Entity</code>의 필드(id/email/password)와 <code>@Column</code> 제약을 설계했습니다.</li>
+          <li><code>application.yml</code>로 DB 연결/JPA 동작을 제어했습니다.</li>
+          <li><code>public String joinForm(Model model)</code>의 문법 구조를 분해했습니다.</li>
+        </ul>
+      </div>
+      <div class="step">
+        <span class="pill theory">오늘 연결 목표</span>
+        <div class="flow"><code>[Lv.1 Entity]
+   -> [Lv.2 Repository]
+Entity가 "데이터 모양"이라면,
+Repository는 "데이터를 꺼내고 넣는 문"입니다.
+</code></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>1) Repository란 무엇인가?</h2>
+      <div class="step">
+        <span class="pill theory">핵심 개념</span>
+        <p>Repository는 DB 작업 창구입니다. Service는 규칙을 생각하고, Repository는 "조회/저장"을 수행합니다. 즉 역할을 분리해 코드를 읽기 쉽게 만듭니다.</p>
+      </div>
+      <div class="step">
+        <span class="pill grammar">왜 JPA 상속을 먼저 배우나?</span>
+        <ul>
+          <li><code>JpaRepository&lt;Member, Long&gt;</code> 하나로 기본 CRUD를 즉시 확보할 수 있습니다.</li>
+          <li>초보자는 SQL을 전부 직접 쓰기보다, "메서드 이름 -> 쿼리 생성" 규칙부터 익히는 것이 학습 효율이 높습니다.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>2) 기본 JPA 상속 코드 (라인별 이유)</h2>
+      <div class="step">
+        <span class="pill code">코드</span>
+        <pre><code>package com.example.lv2.repository; // repository 패키지 위치 선언
+
+import com.example.lv2.entity.Member; // 어떤 엔티티를 다룰지 지정하기 위해 필요
+import org.springframework.data.jpa.repository.JpaRepository; // JPA 기본 CRUD 기능 상속
+
+public interface MemberRepository extends JpaRepository&lt;Member, Long&gt; { // Member 엔티티, PK 타입 Long
+    // 아직 메서드가 없어도 save/findById/findAll/deleteById를 바로 사용 가능
+}
+</code></pre>
+      </div>
+
+      <div class="step">
+        <span class="pill grammar">문법 해설</span>
+        <table>
+          <thead>
+            <tr>
+              <th>코드 조각</th>
+              <th>뜻</th>
+              <th>왜 필요한가?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>interface</code></td>
+              <td>구현 규약 선언</td>
+              <td>Spring Data JPA가 런타임에 구현체를 자동 생성</td>
+            </tr>
+            <tr>
+              <td><code>JpaRepository&lt;Member, Long&gt;</code></td>
+              <td>제네릭 타입 지정</td>
+              <td>어떤 엔티티와 PK를 다루는지 프레임워크가 정확히 인식</td>
+            </tr>
+            <tr>
+              <td><code>extends</code></td>
+              <td>상속</td>
+              <td>검증된 기본 기능을 재사용해 개발 속도/안정성 확보</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>3) Optional과 List를 추가해 기능 확장</h2>
+
+      <div class="step">
+        <span class="pill code">확장 메서드 선언</span>
+        <pre><code>import java.util.List; // 여러 건 조회 결과 타입
+import java.util.Optional; // 결과가 없을 수도 있을 때 안전한 타입
+
+public interface MemberRepository extends JpaRepository&lt;Member, Long&gt; {
+
+    Optional&lt;Member&gt; findByEmail(String email); // email은 보통 유니크, 결과 0개 또는 1개
+
+    List&lt;Member&gt; findByEmailContaining(String keyword); // 검색 결과는 여러 개 가능
+
+    List&lt;Member&gt; findByIdIn(List&lt;Long&gt; ids); // id 목록에 포함되는 여러 회원 조회
+
+    boolean existsByEmail(String email); // 존재 여부만 빠르게 확인
+}
+</code></pre>
+      </div>
+
+      <div class="step">
+        <span class="pill grammar">Optional vs List 깊게 이해하기</span>
+        <table>
+          <thead>
+            <tr>
+              <th>타입</th>
+              <th>의미</th>
+              <th>실수 방지 포인트</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Optional&lt;Member&gt;</code></td>
+              <td>값이 없을 수도 있음(0 or 1)</td>
+              <td><code>null</code> 직접 처리 대신 <code>orElseThrow</code>로 명확한 예외 흐름 구성</td>
+            </tr>
+            <tr>
+              <td><code>List&lt;Member&gt;</code></td>
+              <td>여러 건(0~N)</td>
+              <td>결과 없음은 <code>isEmpty()</code>로 명확하게 처리</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="step">
+        <span class="pill code">Optional 사용 예 (Service에서 호출한다고 가정)</span>
+        <pre><code>Member member = memberRepository.findByEmail(email) // Optional 반환
+    .orElseThrow(() -&gt; new IllegalArgumentException("해당 이메일 회원이 없습니다.")); // 값 없으면 즉시 예외
+</code></pre>
+      </div>
+
+      <div class="step">
+        <span class="pill code">List 사용 예</span>
+        <pre><code>List&lt;Member&gt; members = memberRepository.findByEmailContaining(keyword); // 여러 회원 조회
+if (members.isEmpty()) {
+    // 검색 결과 없음 처리
+}
+</code></pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>4) 어노테이션/문법 사전 (Lv.2 Repository 편)</h2>
+      <div class="step">
+        <span class="pill grammar">필수 개념 정리</span>
+        <ul>
+          <li><code>JpaRepository</code>: CRUD + 페이징 + 정렬 기본 기능 제공.</li>
+          <li><code>Optional</code>: null 처리 실수를 줄이는 컨테이너.</li>
+          <li><code>List</code>: 다건 조회 표준 결과 타입.</li>
+          <li><code>findBy...Containing</code>: SQL의 <code>LIKE %keyword%</code>와 유사한 검색 의미.</li>
+          <li><code>existsBy...</code>: 데이터 전체를 가져오지 않고 존재 여부만 확인.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>5) Lv.2 실습 체크리스트</h2>
+      <div class="step">
+        <span class="pill check">완료 기준</span>
+        <ol>
+          <li>왜 <code>JpaRepository&lt;Member, Long&gt;</code>를 상속하는지 설명할 수 있다.</li>
+          <li><code>Optional</code>을 써야 하는 경우와 <code>List</code>를 써야 하는 경우를 구분할 수 있다.</li>
+          <li>메서드 이름 기반 쿼리(<code>findByEmail</code>, <code>findByEmailContaining</code>)가 어떻게 동작하는지 설명할 수 있다.</li>
+        </ol>
+      </div>
+      <div class="note">다음 Lv.3부터도 시작할 때 "Lv.2 복습"을 먼저 넣고 진행합니다. (운영원칙 고정)</div>
+    </section>
+
+    <p class="footer">Spring Boot 3 Master Class - Lv.2 (Repository 심화)</p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,210 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spring Boot 3 Master Class - Lv.9</title>
+  <style>
+    :root { --bg:#f5f7fb; --paper:#fff; --text:#1f2937; --sub:#4b5563; --line:#d8e1ee; --primary:#0f766e; --primary-soft:#e6fffa; --code-bg:#0f172a; --code-text:#e2e8f0; --warn:#b45309; --warn-soft:#fff7ed; --shadow:0 10px 24px rgba(2,6,23,.08); }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Pretendard","Noto Sans KR",sans-serif; color:var(--text); background:radial-gradient(circle at 0% 0%,#dbeafe 0,transparent 32%),radial-gradient(circle at 100% 0%,#ffedd5 0,transparent 26%),var(--bg); line-height:1.74; }
+    .wrap { max-width:1120px; margin:0 auto; padding:24px 18px 60px; }
+    .hero { border-radius:22px; padding:26px; background:linear-gradient(120deg,#0f766e,#155e75); color:#f8fafc; box-shadow:var(--shadow); }
+    .chip { display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.14); margin:0 6px 6px 0; font-size:.82rem; }
+    .hero h1 { margin:4px 0 6px; font-size:1.85rem; }
+    .hero p { margin:6px 0; opacity:.95; }
+    section { margin-top:16px; border:1px solid var(--line); background:var(--paper); border-radius:16px; box-shadow:var(--shadow); padding:20px; }
+    h2 { margin:0 0 10px; font-size:1.26rem; border-left:5px solid var(--primary); padding-left:10px; }
+    h3 { margin:16px 0 8px; font-size:1.04rem; }
+    .step { margin-top:10px; border:1px solid var(--line); border-radius:12px; padding:12px; background:#fcfdff; }
+    .pill { display:inline-block; border-radius:8px; padding:2px 8px; font-size:.8rem; font-weight:700; margin-bottom:6px; }
+    .theory { background:var(--primary-soft); color:#0f766e; } .code { background:#e0e7ff; color:#3730a3; } .grammar { background:#eef2ff; color:#312e81; } .check { background:var(--warn-soft); color:var(--warn); }
+    pre { margin:8px 0 0; background:var(--code-bg); color:var(--code-text); border-radius:10px; padding:12px; overflow-x:auto; font-size:.84rem; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Courier New",monospace; font-size:.9em; }
+    ul,ol { padding-left:20px; }
+    .flow { background:#0b1325; color:#d5f8f3; border-radius:10px; padding:12px; font-size:.84rem; overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; margin-top:8px; font-size:.92rem; }
+    th,td { border:1px solid var(--line); padding:8px; text-align:left; vertical-align:top; }
+    th { background:#f0f9ff; }
+    .note { margin-top:8px; border-left:4px solid #f97316; background:#fff7ed; border-radius:8px; padding:10px; color:#7c2d12; }
+    .footer { margin-top:16px; text-align:center; color:var(--sub); font-size:.9rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <span class="chip">Lv.9</span>
+      <span class="chip">Part 1 (Thymeleaf)</span>
+      <span class="chip">운영원칙 적용</span>
+      <h1>Controller 기초 + 심화: 요청을 안전하게 흐르게 만들기</h1>
+      <p>이번 레벨 주제: <strong>Controller</strong> (기초 -> 심화)</p>
+      <p>기초 순서 고정: Entity -> Repository -> DTO -> Config -> Service -> Controller</p>
+    </header>
+
+    <section>
+      <h2>0) 이전 레벨 복습 (Lv.8)</h2>
+      <div class="step"><span class="pill theory">복습 핵심</span>
+        <ul>
+          <li>Lv.8에서 Service가 비즈니스 규칙 중심 계층임을 배웠습니다.</li>
+          <li>Controller는 이제 "판단"이 아니라 "흐름 제어"에 집중해야 합니다.</li>
+        </ul>
+      </div>
+      <div class="step"><span class="pill theory">이번 레벨 연결</span>
+        <div class="flow"><code>[브라우저 요청]
+   -> [Controller: 입력 바인딩 + 검증 + 라우팅]
+   -> [Service: 비즈니스 규칙]
+   -> [Controller: Model/Redirect 응답]
+
+Controller 품질 = 사용자 경험 품질
+(에러 메시지, 재입력, 이동 흐름)
+</code></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>1) Controller 기초: 메서드 문법을 정확히 읽기</h2>
+      <div class="step"><span class="pill theory">Deep Explaining</span>
+        <p>Controller는 "HTTP 요청"을 "서비스 호출"로 바꾸는 통역사입니다. 메서드 선언 한 줄에 이미 대부분의 의도가 들어 있습니다.</p>
+      </div>
+
+      <div class="step"><span class="pill code">기초 코드 (라인별 주석)</span>
+<pre><code>package com.example.lv9.controller; // 컨트롤러 패키지
+
+import com.example.lv9.dto.MemberJoinRequest; // 입력 DTO
+import com.example.lv9.service.MemberService; // 서비스 계층
+import jakarta.validation.Valid; // DTO 검증 실행
+import lombok.RequiredArgsConstructor; // final 필드 생성자 주입
+import org.springframework.stereotype.Controller; // MVC 컨트롤러 선언
+import org.springframework.ui.Model; // 뷰로 데이터 전달
+import org.springframework.validation.BindingResult; // 검증 결과 객체
+import org.springframework.web.bind.annotation.GetMapping; // GET 매핑
+import org.springframework.web.bind.annotation.ModelAttribute; // 폼 바인딩
+import org.springframework.web.bind.annotation.PostMapping; // POST 매핑
+import org.springframework.web.bind.annotation.RequestMapping; // 공통 URL 매핑
+
+@Controller // HTML 뷰를 반환하는 컨트롤러
+@RequiredArgsConstructor // 생성자 주입
+@RequestMapping("/members") // 공통 경로
+public class MemberController {
+
+    private final MemberService memberService; // 서비스 주입
+
+    @GetMapping("/join") // 회원가입 폼 열기
+    public String joinForm(Model model) { // public: 스프링 호출 가능, String: 뷰 이름 반환, Model: 뷰 데이터 상자
+        model.addAttribute("req", new MemberJoinRequest()); // 폼 바인딩용 빈 DTO
+        return "member/join"; // templates/member/join.html 렌더링
+    }
+}
+</code></pre>
+      </div>
+
+      <div class="step"><span class="pill grammar">Granular Analysis: public String joinForm(Model model)</span>
+        <table>
+          <thead><tr><th>부품</th><th>문법적 의미</th><th>왜 필요한가?</th></tr></thead>
+          <tbody>
+            <tr><td><code>public</code></td><td>접근 제어자</td><td>DispatcherServlet(스프링)에서 호출 가능해야 함</td></tr>
+            <tr><td><code>String</code></td><td>반환형</td><td>어떤 뷰를 렌더링할지 이름으로 지정</td></tr>
+            <tr><td><code>joinForm</code></td><td>메서드명</td><td>메서드 역할(폼 진입점)을 드러냄</td></tr>
+            <tr><td><code>Model model</code></td><td>파라미터</td><td>컨트롤러 -> 템플릿 데이터 전달 통로</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>2) Controller 심화: 검증 실패/성공 흐름 설계</h2>
+      <div class="step"><span class="pill code">심화 코드 (라인별 주석)</span>
+<pre><code>@PostMapping("/join") // 회원가입 제출 처리
+public String join(
+    @Valid @ModelAttribute("req") MemberJoinRequest req, // 폼 데이터를 req DTO로 바인딩 + 검증
+    BindingResult br, // 검증 결과(에러 포함)
+    Model model // 실패 시 화면에 데이터 재전달
+) {
+    // 1) 왜 BindingResult를 즉시 확인? -> 에러 상태에서 서비스 호출하면 잘못된 데이터가 전파됨
+    if (br.hasErrors()) {
+        model.addAttribute("pageTitle", "회원가입"); // 실패 화면 부가 데이터
+        return "member/join"; // 입력 화면 재렌더링
+    }
+
+    // 2) 서비스는 규칙 담당. 컨트롤러는 호출/흐름만 담당
+    Long memberId = memberService.join(req);
+
+    // 3) 왜 redirect? -> 새로고침 시 중복 제출 방지(PRG 패턴)
+    return "redirect:/members/detail?memberId=" + memberId;
+}
+
+@GetMapping("/detail")
+public String detail(@org.springframework.web.bind.annotation.RequestParam Long memberId, Model model) {
+    model.addAttribute("member", memberService.findById(memberId)); // 서비스 결과 DTO 전달
+    return "member/detail";
+}
+</code></pre>
+      </div>
+
+      <div class="step"><span class="pill grammar">Controller에서 자주 쓰는 파라미터 문법</span>
+        <table>
+          <thead><tr><th>문법</th><th>역할</th><th>주의점</th></tr></thead>
+          <tbody>
+            <tr><td><code>@ModelAttribute</code></td><td>폼 입력 바인딩</td><td>폼 input name과 DTO 필드명이 맞아야 함</td></tr>
+            <tr><td><code>@Valid</code></td><td>DTO 검증 실행</td><td>검증 결과는 반드시 BindingResult로 확인</td></tr>
+            <tr><td><code>BindingResult</code></td><td>검증 에러 보관</td><td><code>@Valid</code> 바로 다음 파라미터에 위치해야 안정적</td></tr>
+            <tr><td><code>@RequestParam</code></td><td>쿼리 파라미터 수신</td><td>필수/기본값 설정을 명확히 할 것</td></tr>
+            <tr><td><code>Model</code></td><td>뷰 데이터 전달</td><td>에러 재렌더링 시 필요한 데이터 누락 주의</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>3) Controller가 Service와 대화하는 방식 (복합 설명)</h2>
+      <div class="step"><span class="pill grammar">어떤 Service 메서드를 왜 호출하나?</span>
+        <ul>
+          <li><code>memberService.join(req)</code>: 입력 DTO를 받아 가입 규칙(중복, 암호화)을 처리하기 위해 호출.</li>
+          <li><code>memberService.findById(memberId)</code>: 상세 화면에 필요한 응답 DTO를 가져오기 위해 호출.</li>
+          <li>Controller는 "무엇을 검증하고 어디로 보낼지"를 결정하고, 규칙 판단은 Service에게 위임합니다.</li>
+        </ul>
+      </div>
+      <div class="step"><span class="pill grammar">잘못된 구조 vs 올바른 구조</span>
+<pre><code>// 잘못된 예: Controller가 비즈니스 판단까지 수행
+// if (email already exists) ...
+
+// 올바른 예: Controller는 입력/흐름, Service는 규칙
+if (br.hasErrors()) return "member/join";
+Long id = memberService.join(req);
+return "redirect:/members/detail?memberId=" + id;
+</code></pre>
+      </div>
+      <div class="note">규칙이 Controller로 새면 테스트도 어려워지고, 코드 중복도 커집니다.</div>
+    </section>
+
+    <section>
+      <h2>4) 어노테이션/키워드 사전 (Controller 편)</h2>
+      <div class="step"><span class="pill grammar">동작 원리 + 사용 시점</span>
+        <ul>
+          <li><code>@Controller</code>: HTML 뷰 반환 컨트롤러 선언.</li>
+          <li><code>@GetMapping</code>/<code>@PostMapping</code>: HTTP 메서드별 라우팅.</li>
+          <li><code>@RequestMapping</code>: 공통 URL prefix 지정.</li>
+          <li><code>@ModelAttribute</code>: 폼 데이터 -> DTO 자동 바인딩.</li>
+          <li><code>@Valid</code> + <code>BindingResult</code>: 검증 + 오류 처리 표준 패턴.</li>
+          <li><code>redirect:</code>: POST 성공 후 중복 제출 방지 패턴.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>5) Lv.9 실습 체크리스트</h2>
+      <div class="step"><span class="pill check">완료 기준</span>
+        <ol>
+          <li><code>public String joinForm(Model model)</code>를 문법 단위로 설명할 수 있다.</li>
+          <li>검증 실패 흐름(<code>BindingResult</code>)과 성공 흐름(<code>redirect</code>)을 구분할 수 있다.</li>
+          <li>Controller가 어떤 Service 메서드를 왜 호출하는지 설명할 수 있다.</li>
+          <li>Controller와 Service의 책임 경계를 명확히 설명할 수 있다.</li>
+        </ol>
+      </div>
+      <div class="note">다음 Lv.10도 같은 방식으로 시작하며, Part1 종합(Entity~Controller 전체 연결)을 정리합니다.</div>
+    </section>
+
+    <p class="footer">Spring Boot 3 Master Class - Lv.9 (Controller 기초 + 심화)</p>
+  </div>
+</body>
+</html>

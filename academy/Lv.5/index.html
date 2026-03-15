@@ -1,0 +1,188 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spring Boot 3 Master Class - Lv.5</title>
+  <style>
+    :root { --bg:#f5f7fb; --paper:#fff; --text:#1f2937; --sub:#4b5563; --line:#d8e1ee; --primary:#0f766e; --primary-soft:#e6fffa; --code-bg:#0f172a; --code-text:#e2e8f0; --warn:#b45309; --warn-soft:#fff7ed; --shadow:0 10px 24px rgba(2,6,23,.08); }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Pretendard","Noto Sans KR",sans-serif; color:var(--text); background:radial-gradient(circle at 0% 0%,#dbeafe 0,transparent 32%),radial-gradient(circle at 100% 0%,#ffedd5 0,transparent 26%),var(--bg); line-height:1.72; }
+    .wrap { max-width:1120px; margin:0 auto; padding:24px 18px 60px; }
+    .hero { border-radius:22px; padding:26px; background:linear-gradient(120deg,#0f766e,#155e75); color:#f8fafc; box-shadow:var(--shadow); }
+    .chip { display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.14); margin:0 6px 6px 0; font-size:.82rem; }
+    .hero h1 { margin:4px 0 6px; font-size:1.85rem; }
+    .hero p { margin:6px 0; opacity:.95; }
+    section { margin-top:16px; border:1px solid var(--line); background:var(--paper); border-radius:16px; box-shadow:var(--shadow); padding:20px; }
+    h2 { margin:0 0 10px; font-size:1.26rem; border-left:5px solid var(--primary); padding-left:10px; }
+    .step { margin-top:10px; border:1px solid var(--line); border-radius:12px; padding:12px; background:#fcfdff; }
+    .pill { display:inline-block; border-radius:8px; padding:2px 8px; font-size:.8rem; font-weight:700; margin-bottom:6px; }
+    .theory { background:var(--primary-soft); color:#0f766e; } .code { background:#e0e7ff; color:#3730a3; } .grammar { background:#eef2ff; color:#312e81; } .check { background:var(--warn-soft); color:var(--warn); }
+    pre { margin:8px 0 0; background:var(--code-bg); color:var(--code-text); border-radius:10px; padding:12px; overflow-x:auto; font-size:.84rem; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Courier New",monospace; font-size:.9em; }
+    ul,ol { padding-left:20px; }
+    .flow { background:#0b1325; color:#d5f8f3; border-radius:10px; padding:12px; font-size:.84rem; overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; margin-top:8px; font-size:.92rem; }
+    th,td { border:1px solid var(--line); padding:8px; text-align:left; vertical-align:top; }
+    th { background:#f0f9ff; }
+    .note { margin-top:8px; border-left:4px solid #f97316; background:#fff7ed; border-radius:8px; padding:10px; color:#7c2d12; }
+    .footer { margin-top:16px; text-align:center; color:var(--sub); font-size:.9rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <span class="chip">Lv.5</span>
+      <span class="chip">Part 1 (Thymeleaf)</span>
+      <span class="chip">운영원칙 적용</span>
+      <h1>DTO 기초: 입력/출력 모델을 분리하는 이유</h1>
+      <p>이번 레벨은 <strong>DTO 한 주제</strong>만 깊게 다룹니다.</p>
+      <p>기초 순서 고정: Entity -> Repository -> DTO -> Config -> Service -> Controller</p>
+    </header>
+
+    <section>
+      <h2>0) 이전 레벨 복습 (Lv.4)</h2>
+      <div class="step"><span class="pill theory">복습 핵심</span>
+        <ul>
+          <li>Lv.4에서 Repository를 만들고 <code>Optional</code>/<code>List</code> 반환 의도를 학습했습니다.</li>
+          <li>즉, DB에서 "어떻게 가져올지"는 준비되었습니다.</li>
+        </ul>
+      </div>
+      <div class="step"><span class="pill theory">이번 레벨 연결</span>
+        <div class="flow"><code>[Repository 결과(Entity)]
+   -> [DTO로 가공]
+   -> [화면/API에 안전하게 전달]
+
+DTO는 Entity를 외부로 바로 노출하지 않게 막아주는 보호막입니다.
+</code></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>1) DTO가 왜 필요한가? (Deep Explaining)</h2>
+      <div class="step"><span class="pill theory">핵심 개념</span>
+        <p>DTO(Data Transfer Object)는 데이터 전달용 객체입니다. Entity를 그대로 화면/API에 넘기면 비밀번호 같은 민감 데이터가 섞일 수 있습니다. 그래서 "입력 DTO"와 "응답 DTO"를 분리해 사용합니다.</p>
+      </div>
+      <div class="step"><span class="pill grammar">초보자 관점 요약</span>
+        <ul>
+          <li>Entity = DB 중심 모델</li>
+          <li>DTO = 화면/API 중심 모델</li>
+          <li>둘을 분리하면 보안, 유지보수, 테스트가 쉬워집니다.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>2) 코드: Request DTO / Response DTO 라인별 해설</h2>
+      <div class="step"><span class="pill code">MemberJoinRequest (입력 DTO)</span>
+<pre><code>package com.example.lv5.dto; // DTO 패키지 선언
+
+import jakarta.validation.constraints.Email; // 이메일 형식 검증
+import jakarta.validation.constraints.NotBlank; // 빈 문자열 검증
+import jakarta.validation.constraints.Size; // 길이 검증
+import lombok.Getter; // getter 자동 생성
+import lombok.Setter; // setter 자동 생성 (폼 바인딩용)
+
+@Getter // 필드 읽기 메서드 생성
+@Setter // 필드 쓰기 메서드 생성 (폼 입력값 바인딩)
+public class MemberJoinRequest { // 회원가입 입력 DTO
+
+    @NotBlank(message = "이메일은 필수입니다.") // null/""/공백 금지
+    @Email(message = "이메일 형식이 올바르지 않습니다.") // 이메일 규칙 검사
+    private String email; // 사용자 입력 이메일
+
+    @NotBlank(message = "비밀번호는 필수입니다.")
+    @Size(min = 8, message = "비밀번호는 8자 이상이어야 합니다.")
+    private String password; // 사용자 입력 비밀번호(평문)
+}
+</code></pre>
+      </div>
+
+      <div class="step"><span class="pill code">MemberResponse (출력 DTO)</span>
+<pre><code>package com.example.lv5.dto;
+
+import com.example.lv5.entity.Member; // Entity -> DTO 변환에 필요
+
+public record MemberResponse(Long id, String email) { // 응답은 필요한 필드만 노출
+
+    public static MemberResponse from(Member member) { // 변환 팩토리 메서드
+        return new MemberResponse(member.getId(), member.getEmail()); // password는 의도적으로 제외
+    }
+}
+</code></pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>3) DTO <-> Entity 변환 기초</h2>
+      <div class="step"><span class="pill code">요청 DTO를 엔티티로 바꾸는 기본 패턴</span>
+<pre><code>public Member toEntity(PasswordEncoder encoder) { // 입력 DTO -> Entity
+    return Member.builder() // 빌더 시작
+        .email(this.email) // DTO 필드 매핑
+        .password(encoder.encode(this.password)) // 변환 시 암호화 강제
+        .build(); // Entity 생성
+}
+</code></pre>
+      </div>
+      <div class="step"><span class="pill grammar">왜 변환 메서드를 두나?</span>
+        <ul>
+          <li>Service에서 변환 규칙을 반복 작성하지 않아도 됩니다.</li>
+          <li>암호화/기본값 처리 같은 규칙을 한 곳에 모을 수 있습니다.</li>
+          <li>코드 리뷰 시 "어디서 변환하는지"가 명확해집니다.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>4) Java 기초 + 문법 분해 (Granular Analysis 유지)</h2>
+      <div class="step"><span class="pill grammar">public static MemberResponse from(Member member) 분해</span>
+        <table>
+          <thead><tr><th>부품</th><th>문법적 의미</th><th>왜 필요한가?</th></tr></thead>
+          <tbody>
+            <tr><td><code>public</code></td><td>접근 제어자</td><td>서비스/컨트롤러 어디서든 호출 가능하게</td></tr>
+            <tr><td><code>static</code></td><td>정적 메서드</td><td>객체 생성 없이 <code>MemberResponse.from(...)</code>로 바로 사용</td></tr>
+            <tr><td><code>MemberResponse</code></td><td>반환형</td><td>엔티티가 아닌 응답 DTO만 반환해 경계 유지</td></tr>
+            <tr><td><code>from</code></td><td>메서드명</td><td>"어디에서 변환되는지" 의미를 이름으로 명확화</td></tr>
+            <tr><td><code>(Member member)</code></td><td>파라미터</td><td>변환 원본 엔티티 전달</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="step"><span class="pill grammar">private / Long / String 다시 연결</span>
+        <ul>
+          <li><code>private</code>: DTO/Entity 필드를 외부에서 직접 건드리지 못하게 보호.</li>
+          <li><code>Long</code>: 식별자(id) 타입으로 넉넉한 범위 제공.</li>
+          <li><code>String</code>: 이메일/비밀번호 같은 문자열 데이터 표현.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>5) 어노테이션 사전 (DTO 편)</h2>
+      <div class="step"><span class="pill grammar">동작 원리 + 사용 시점</span>
+        <ul>
+          <li><code>@NotBlank</code>: 공백 입력 차단. 폼 입력 검증의 기본.</li>
+          <li><code>@Email</code>: 이메일 형식 검증. 잘못된 주소 사전 차단.</li>
+          <li><code>@Size</code>: 길이 검증. 비밀번호 최소 길이 정책 강제.</li>
+          <li><code>@Getter</code>/<code>@Setter</code>: 폼 바인딩/읽기에 필요한 메서드 자동 생성.</li>
+        </ul>
+      </div>
+      <div class="note">DTO의 검증 어노테이션은 Controller의 <code>@Valid</code>와 함께 동작합니다. (다음 레벨에서 Service/Controller 연결 시 본격 적용)</div>
+    </section>
+
+    <section>
+      <h2>6) Lv.5 실습 체크리스트</h2>
+      <div class="step"><span class="pill check">완료 기준</span>
+        <ol>
+          <li>왜 Entity와 DTO를 분리해야 하는지 설명할 수 있다.</li>
+          <li>입력 DTO와 응답 DTO를 각각 언제 쓰는지 구분할 수 있다.</li>
+          <li><code>from()</code>, <code>toEntity()</code> 변환 패턴을 이해하고 직접 작성할 수 있다.</li>
+          <li>검증 어노테이션(<code>@NotBlank</code>, <code>@Email</code>, <code>@Size</code>) 역할을 설명할 수 있다.</li>
+        </ol>
+      </div>
+      <div class="note">다음 Lv.6도 같은 원칙으로 시작하며, Config(PasswordEncoder/공통 설정) 심화로 이어집니다.</div>
+    </section>
+
+    <p class="footer">Spring Boot 3 Master Class - Lv.5 (DTO 기초)</p>
+  </div>
+</body>
+</html>
